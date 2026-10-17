@@ -1,0 +1,249 @@
+/* Stronger text contrast and larger controls for a busy cashier counter. */
+.nav-item {
+  color: #746783;
+}
+.nav-item svg {
+  color: #8c7e9c;
+}
+.nav-group > span {
+  color: #81728f;
+}
+.page-title p,
+.panel-head p,
+.stat-top,
+.stat-foot,
+.page-note,
+.muted,
+.quiet-note,
+.topbar-breadcrumb,
+.local-indicator {
+  color: #776c84;
+}
+.eyebrow,
+.subheading {
+  color: #82718f;
+}
+.welcome-copy p {
+  color: #7a6196;
+}
+.welcome-copy > span {
+  color: #76538f;
+}
+.quick-action strong {
+  color: #655273;
+}
+.quick-action div span,
+.mini-note p {
+  color: #83708f;
+}
+.mini-note strong {
+  color: #78538f;
+}
+th {
+  color: #7a6888;
+  font-size: 11px;
+}
+td {
+  color: #73647f;
+  font-size: 12px;
+}
+td strong {
+  color: #604c70;
+}
+td small {
+  color: #857393;
+  font-size: 10px;
+}
+.badge {
+  font-size: 10px;
+  color: #73617f;
+}
+.badge.green {
+  color: #41765a;
+}
+.badge.orange {
+  color: #966223;
+}
+.badge.purple {
+  color: #7d4fa0;
+}
+.badge.red {
+  color: #a5465e;
+}
+.stat-foot {
+  font-size: 10px;
+}
+.panel-head p {
+  font-size: 11px;
+}
+.field {
+  font-size: 12px;
+  color: #72607e;
+}
+.field small {
+  color: #7d6a8a;
+  font-size: 11px;
+}
+.field-error {
+  color: #ac3b54 !important;
+}
+.state {
+  color: #8f75a0;
+}
+.state p {
+  color: #7d6b89;
+}
+.alert-row strong {
+  color: #785289;
+}
+.alert-row div span {
+  color: #82708f;
+}
+.attention-link {
+  color: #805995;
+}
+.orange-text {
+  color: #9d652a;
+}
+.product-card-copy h3 {
+  font-size: 14px;
+  color: #654c77;
+}
+.product-card-copy > span {
+  font-size: 10px;
+  color: #806d8d;
+}
+.product-card-copy small {
+  font-size: 11px;
+  color: #7d6a89;
+}
+.product-card-copy strong {
+  font-size: 17px;
+  color: #80549d;
+}
+.category-chips button {
+  font-size: 12px;
+  color: #766184;
+}
+.category-chips button.selected {
+  color: #6b3d94;
+}
+.product-unit {
+  color: #7e658e;
+  font-size: 10px;
+}
+.cart-panel .panel-head h2 {
+  font-size: 18px;
+}
+.cart-item-title > strong {
+  font-size: 14px;
+  color: #624b72;
+}
+.cart-item > span {
+  font-size: 12px;
+  color: #846b94;
+}
+.cart-item-bottom > strong {
+  font-size: 15px;
+  color: #77508f;
+}
+.quantity-control input {
+  font-size: 14px;
+  min-height: 36px;
+  width: 65px;
+}
+.quantity-control button {
+  padding: 9px;
+  min-width: 33px;
+}
+.cart-checkout .field,
+.cart-line {
+  font-size: 12px;
+  color: #80658f;
+}
+.cart-checkout select {
+  font-size: 13px;
+  min-height: 43px;
+}
+.cart-total {
+  font-size: 14px;
+  color: #765189;
+}
+.cart-total strong {
+  color: #76448e;
+}
+.cash-field input {
+  font-size: 20px;
+  color: #705081;
+  min-height: 50px;
+}
+.credit-check {
+  font-size: 11px;
+  color: #7d638c;
+}
+.change-line strong {
+  color: #42765a;
+}
+.checkout-btn {
+  font-size: 13px;
+  min-height: 48px;
+}
+.cart-note {
+  font-size: 10px;
+  color: #887195;
+}
+.login-card > p,
+.login-card .login-note,
+.login-card > small {
+  color: #80708b;
+}
+.login-story p,
+.story-features span {
+  color: #e4d5f5;
+}
+.login-card .eyebrow {
+  color: #7a628c;
+}
+.search-field input {
+  font-size: 13px;
+}
+.check-label {
+  color: #7d688c;
+}
+.info-card {
+  color: #765b8b;
+}
+.info-card h3 {
+  color: #6d4589;
+}
+.info-strip {
+  color: #725987;
+}
+.pending-notice {
+  color: #8b632f;
+}
+.credit-summary > div > span,
+.credit-summary p {
+  color: #80638f;
+}
+.credit-summary strong {
+  color: #78528f;
+}
+.report-collections {
+  color: #796386;
+}
+.report-collections strong {
+  color: #6b477f;
+}
+.inventory-value span {
+  color: #796486;
+}
+.dashboard-bottom td {
+  font-size: 11px;
+}
+.dashboard-bottom td strong {
+  font-size: 10px;
+}
+.dashboard-bottom th {
+  font-size: 10px;
+}
