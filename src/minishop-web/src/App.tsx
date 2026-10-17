@@ -15,6 +15,7 @@ import {
   ChevronRight,
   CreditCard,
   LayoutDashboard,
+  ListChecks,
   LogOut,
   Menu,
   Package,
@@ -63,6 +64,11 @@ const EmployeesPage = lazy(() =>
 );
 const SettingsPage = lazy(() =>
   import("./pages/Admin").then((m) => ({ default: m.SettingsPage })),
+);
+const DevelopmentProgressPage = lazy(() =>
+  import("./pages/DevelopmentProgress").then((m) => ({
+    default: m.DevelopmentProgressPage,
+  })),
 );
 
 const AuthContext = createContext<User | null>(null);
@@ -166,6 +172,14 @@ export function App() {
               }
             />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route
+              path="admin/development-progress"
+              element={
+                <Owner>
+                  <DevelopmentProgressPage />
+                </Owner>
+              }
+            />
           </Route>
         </Routes>
       </Suspense>
@@ -291,6 +305,7 @@ const navigation = [
       ["/sales", "Sales history", ReceiptText, false],
       ["/reports", "Reports", BarChart3, true],
       ["/employees", "Employees", ShieldCheck, true],
+      ["/admin/development-progress", "Development progress", ListChecks, true],
     ],
   },
 ] as const;

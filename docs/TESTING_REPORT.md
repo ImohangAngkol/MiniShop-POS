@@ -1,5 +1,7 @@
 # Executed verification report
 
+For the subsequent development-progress feature, see [the newer verification report](DEVELOPMENT_PROGRESS_TESTING.md): 38 backend, 24 frontend and 6 browser tests passed. The original implementation-session evidence below is preserved with its original counts and scope.
+
 Verified on **2026-10-17, Asia/Manila**. This report describes commands actually executed and bounded results, not a production-readiness certification.
 
 ## Environment

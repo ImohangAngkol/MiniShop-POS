@@ -71,3 +71,16 @@ Copy backups to encrypted separate storage. The restore drill creates a separate
 `Program.cs` assembles the application and registers dependencies. Controllers receive HTTP requests and enforce roles. DTO records validate input. Services apply shop rules. `ShopDb` is the EF Core database session; Npgsql translates its queries into PostgreSQL commands. `ShopWriter` surrounds commerce writes with a transaction and a PostgreSQL lock. Entities describe persisted records; migrations create and evolve tables. ASP.NET Identity handles password hashes and authenticated cookies. See the Python-to-C# explanations and checkout walkthrough in [BACKEND_GUIDE](docs/BACKEND_GUIDE.md).
 
 Start reading with [project overview](docs/PROJECT_OVERVIEW.md), [user manual](docs/USER_MANUAL.md), [architecture](docs/ARCHITECTURE.md), and [progress checklist](docs/PROGRESS.md). All 12 requested guides are in `docs/`.
+
+## Development progress dashboard
+
+Sign in as Owner and choose **Development progress**, or open **http://localhost:5080/admin/development-progress**. Cashiers cannot access the page or its private API. The dashboard separates functional completion from production readiness and shows weighted milestones, evidence, blockers, priorities and release gates.
+
+The reviewed source is `progress/development-progress.json`. Read [current progress](PROGRESS.md), [remaining roadmap](docs/DEVELOPMENT_ROADMAP.md), [maintenance rules](docs/PROGRESS_MAINTENANCE.md) and [verification evidence](docs/DEVELOPMENT_PROGRESS_TESTING.md). From the repository root:
+
+```powershell
+node scripts/update-progress.mjs
+node scripts/update-progress.mjs --check
+```
+
+Commands recalculate and regenerate reports; they never automatically mark work complete. Review evidence/statuses manually, then rebuild/restart the API to serve the updated snapshot. Build.ps1/Test.ps1 reject invalid or stale progress reports. Changes remain local until a GitHub push is approved.

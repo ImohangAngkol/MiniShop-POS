@@ -42,6 +42,7 @@ For mutations: GET `/api/auth/csrf`, keep its cookie, send the response `token` 
 | GET /reports/sales | Owner | `from,to` inclusive PHT dates; revenue, profit, cost, refunds, collections, daily/product totals |
 | GET /reports/inventory | Owner | Current batch-cost valuation, expired valuation, product totals |
 | GET /reports/export/{kind} | Owner | kind sales/credit/inventory, optional from/to; downloadable UTF-8 CSV |
+| GET /admin/development-progress | Owner | Private reviewed progress JSON; no-store; missing/unreadable/malformed file returns 503; Cashier 403, anonymous 401 |
 
 Product body example (fictional):
 

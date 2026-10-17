@@ -1,5 +1,7 @@
 . "$PSScriptRoot\Env.ps1"
 Set-Location $projectRoot
+& node scripts/update-progress.mjs --check
+if ($LASTEXITCODE -ne 0) { throw 'Progress report is invalid or stale. Review progress/development-progress.json and run node scripts/update-progress.mjs.' }
 & npm.cmd --prefix src/minishop-web run build
 if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed' }
 $webroot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'src\MiniShop.Api\wwwroot'))

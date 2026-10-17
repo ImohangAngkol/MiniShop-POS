@@ -14,6 +14,28 @@ public sealed class ApiTests(DatabaseFixture fixture)
         await Csrf(client); var r = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest(owner ? "test-owner@example.test" : "test-cashier@example.test", fixture.Password)); r.EnsureSuccessStatusCode(); await Csrf(client); return client;
     }
     private static async Task Csrf(HttpClient client) { var token = await client.GetFromJsonAsync<JsonElement>("/api/auth/csrf"); client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN"); client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.GetProperty("token").GetString()); }
+    [Theory]
+    [InlineData(true, HttpStatusCode.OK)]
+    [InlineData(false, HttpStatusCode.Forbidden)]
+    public async Task Development_progress_is_only_returned_to_owners(bool owner, HttpStatusCode expected)
+    {
+        using var client = await Login(owner);
+        var response = await client.GetAsync("/api/admin/development-progress");
+        Assert.Equal(expected, response.StatusCode);
+        if (owner)
+        {
+            var snapshot = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal(1, snapshot.GetProperty("schemaVersion").GetInt32());
+            Assert.Equal(9, snapshot.GetProperty("milestones").GetArrayLength());
+        }
+        else Assert.DoesNotContain("milestones", await response.Content.ReadAsStringAsync());
+    }
+    [Fact]
+    public async Task Anonymous_clients_cannot_read_development_progress()
+    {
+        using var client = fixture.Factory.CreateClient(new() { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/admin/development-progress")).StatusCode);
+    }
     [Fact]
     public async Task Health_responds_and_protected_routes_require_authentication()
     {

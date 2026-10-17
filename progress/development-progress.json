@@ -1,0 +1,768 @@
+{
+  "schemaVersion": 1,
+  "project": "MiniShop POS",
+  "updatedAt": "2026-10-17",
+  "phase": "Local acceptance and deployment hardening",
+  "baselineRevision": "afe3b92",
+  "assessmentNote": "A reviewed roadmap score, not a probability of safety or an estimate of remaining engineering hours. Completion earns credit only for the stated acceptance scope and evidence. Production rollout remains blocked until every release gate is verified. Future optional features are excluded from the initial-release score.",
+  "evidence": [
+    {
+      "id": "architecture-review",
+      "title": "Architecture and source audit",
+      "method": "review",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "docs/ARCHITECTURE.md",
+        "docs/BACKEND_GUIDE.md",
+        "src/MiniShop.Api/Program.cs",
+        "src/MiniShop.Api/Data/ShopDb.cs"
+      ],
+      "result": "Reviewed controller/service/DTO boundaries, decimal mappings, constraints, same-origin hosting, and the existing operating guides against source at baseline afe3b92."
+    },
+    {
+      "id": "backend-tests",
+      "title": "PostgreSQL and authenticated API tests",
+      "method": "automated",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "tests/MiniShop.Tests/CommerceTests.cs",
+        "tests/MiniShop.Tests/ApiTests.cs",
+        "tests/MiniShop.Tests/RulesTests.cs",
+        "tests/MiniShop.Tests/DevelopmentProgressTests.cs",
+        "docs/DEVELOPMENT_PROGRESS_TESTING.md",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "Baseline rerun: 32 passed. After the progress change, 38 passed with zero failures/skips, including owner/cashier/anonymous progress access and missing/malformed snapshot checks. Existing coverage exercises actual PostgreSQL migrations, stock concurrency, duplicate checkout, rollback, repayments, refunds, ledger protection, roles and CSRF. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+    },
+    {
+      "id": "frontend-tests",
+      "title": "Frontend totals and accessible forms",
+      "method": "automated",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "src/minishop-web/src/format.test.ts",
+        "src/minishop-web/src/ui.test.tsx",
+        "src/minishop-web/src/development-progress/model.test.ts",
+        "src/minishop-web/src/pages/DevelopmentProgress.test.tsx",
+        "docs/DEVELOPMENT_PROGRESS_TESTING.md",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "Baseline rerun: six tests passed. After the progress change, all 24 passed, including independent weighted-point/track arithmetic, evidence validation, actual audit totals, disclosure rendering, retries and missing-data states. Existing decimal/form checks remain passing. This is not a full accessibility audit. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+    },
+    {
+      "id": "browser-tests",
+      "title": "Built application browser acceptance",
+      "method": "automated",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "src/minishop-web/e2e/shop.spec.ts",
+        "src/minishop-web/e2e/development-progress.spec.ts",
+        "docs/DEVELOPMENT_PROGRESS_TESTING.md",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "All six Chromium workflows passed after the progress change: the three existing shop workflows plus owner progress/evidence/mobile rendering, unavailable-data recovery, and cashier page/API denial. Original coverage includes delivery, weighted credit checkout, repayment, PDF/print, committed-response-loss recovery and logout. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+    },
+    {
+      "id": "receipt-review",
+      "title": "Sales slip generation and rendering",
+      "method": "operational",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "src/MiniShop.Api/Services/ReceiptRenderer.cs",
+        "src/minishop-web/src/pages/Sales.tsx",
+        "src/minishop-web/scripts/verify-pdf.mjs",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "Baseline PDF parsed and rendered to PNG, long receipt xref/escaping checked, and 80 mm browser print inspected. Scope is the supported ASCII PDF and browser layout; no physical printer or 58 mm acceptance was recorded."
+    },
+    {
+      "id": "deployment-review",
+      "title": "Local build, publish and recovery drill",
+      "method": "operational",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "scripts/Build.ps1",
+        "scripts/Start.ps1",
+        "scripts/Backup.ps1",
+        "scripts/Verify-Backup.ps1",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "Recorded baseline Release publish and healthy local app; custom backup/checksum restored into a separate database with expected table counts. Does not prove managed startup, an operational least-privilege role or off-site failover."
+    },
+    {
+      "id": "security-review",
+      "title": "Application safeguards and dependency audit",
+      "method": "review",
+      "verifiedAt": "2026-10-17",
+      "paths": [
+        "src/MiniShop.Api/Program.cs",
+        "src/MiniShop.Api/Data/Migrations/20261017142417_FinancialLinks.cs",
+        "docs/TESTING_REPORT.md"
+      ],
+      "result": "Identity, cookie settings, CSRF, role attributes, immutable ledgers and safe SQL were reviewed. Baseline npm/NuGet audits reported no advisories; no independent penetration or compliance review is claimed."
+    },
+    {
+      "id": "cloud-design",
+      "title": "Cloud preparation design review",
+      "method": "review",
+      "verifiedAt": "2026-10-17",
+      "paths": ["docs/ARCHITECTURE.md", "docs/DEPLOYMENT_GUIDE.md"],
+      "result": "Reviewed the local authority, no-bidirectional-sync initial scope, outbox/inbox deduplication proposal and conflict risks. This verifies the documented design only, not a running cloud or synchronization implementation."
+    }
+  ],
+  "milestones": [
+    {
+      "id": "foundation",
+      "title": "Foundation and architecture",
+      "weight": 10,
+      "track": "functional",
+      "summary": "The local application, PostgreSQL schema, service boundaries and setup workflow are established.",
+      "tasks": [
+        {
+          "id": "solution-build",
+          "title": "Application foundation and build",
+          "status": "verified",
+          "detail": "React/TypeScript and ASP.NET Core 10 projects build with pinned dependencies and an explicit health endpoint.",
+          "sources": [
+            "src/MiniShop.Api/Program.cs",
+            "src/minishop-web/package.json"
+          ],
+          "evidenceIds": ["deployment-review", "backend-tests"]
+        },
+        {
+          "id": "database-schema",
+          "title": "Database schema and migrations",
+          "status": "verified",
+          "detail": "Two EF migrations establish Identity, shop relations, precision, indexes, stock constraints and ledger triggers; real integration fixtures apply them.",
+          "sources": [
+            "src/MiniShop.Api/Data/ShopDb.cs",
+            "src/MiniShop.Api/Data/Migrations/20261017142417_FinancialLinks.cs"
+          ],
+          "evidenceIds": ["backend-tests"]
+        },
+        {
+          "id": "module-boundaries",
+          "title": "Modular monolith boundaries",
+          "status": "verified",
+          "detail": "Controllers, DTOs, services, entities and persistence have distinct roles; checkout rules use one transactional writer.",
+          "sources": [
+            "src/MiniShop.Api/Services/ShopWriter.cs",
+            "docs/ARCHITECTURE.md"
+          ],
+          "evidenceIds": ["architecture-review", "backend-tests"]
+        },
+        {
+          "id": "local-communication",
+          "title": "Frontend/backend communication",
+          "status": "verified",
+          "detail": "Same-origin cookie requests and Vite proxy connect actual API data; no shop totals are static mock data.",
+          "sources": [
+            "src/minishop-web/src/api.ts",
+            "src/minishop-web/vite.config.ts"
+          ],
+          "evidenceIds": ["browser-tests"]
+        },
+        {
+          "id": "operator-guides",
+          "title": "Setup and architecture guides",
+          "status": "verified",
+          "detail": "The requested beginner, C#, database, API, user and deployment guides and Windows helpers have been reviewed against implemented paths.",
+          "sources": [
+            "README.md",
+            "docs/SETUP_GUIDE.md",
+            "docs/BACKEND_GUIDE.md"
+          ],
+          "evidenceIds": ["architecture-review", "deployment-review"]
+        }
+      ]
+    },
+    {
+      "id": "frontend",
+      "title": "Frontend and user experience",
+      "weight": 10,
+      "track": "functional",
+      "summary": "Operational pages work; comprehensive accessibility and large-catalog acceptance remain.",
+      "tasks": [
+        {
+          "id": "protected-navigation",
+          "title": "Routing and responsive shell",
+          "status": "verified",
+          "detail": "Login, owner routing, sidebar/mobile navigation and the existing light-theme shell support the tested desktop/mobile flow.",
+          "sources": [
+            "src/minishop-web/src/App.tsx",
+            "src/minishop-web/src/styles.css"
+          ],
+          "evidenceIds": ["browser-tests"]
+        },
+        {
+          "id": "operational-pages",
+          "title": "Connected operational pages",
+          "status": "verified",
+          "detail": "Dashboard, cashier, catalog, delivery, customers, credit, sales, reports, employees and settings call live APIs.",
+          "sources": [
+            "src/minishop-web/src/pages/Dashboard.tsx",
+            "src/minishop-web/src/pages/Admin.tsx"
+          ],
+          "evidenceIds": ["browser-tests"]
+        },
+        {
+          "id": "form-states",
+          "title": "Validation, empty and error states",
+          "status": "needs-verification",
+          "detail": "Shared RHF/Zod forms and API error handling exist; basic forms are tested, but rejection/timeout cases are not comprehensively exercised on every page.",
+          "sources": [
+            "src/minishop-web/src/ui.tsx",
+            "src/minishop-web/src/api.ts"
+          ],
+          "evidenceIds": ["frontend-tests"],
+          "next": "Exercise server validation, timeout, loading and empty states on every operational page."
+        },
+        {
+          "id": "accessibility",
+          "title": "Keyboard and mobile accessibility",
+          "status": "needs-verification",
+          "detail": "Labeled controls, focus styles, modal dialogs and reduced motion exist. One 390 px overflow check is not full keyboard, screen-reader or multi-browser acceptance.",
+          "sources": [
+            "src/minishop-web/src/ui.tsx",
+            "src/minishop-web/src/readability.css"
+          ],
+          "evidenceIds": ["browser-tests", "frontend-tests"],
+          "next": "Run keyboard-only, screen-reader, contrast and representative phone/browser acceptance."
+        },
+        {
+          "id": "large-catalog",
+          "title": "Large-catalog and ledger navigation",
+          "status": "partial",
+          "detail": "Product/sales/movement/audit pagination exists, but customer, batch and ledger views cap results and selectors are limited.",
+          "sources": [
+            "src/minishop-web/src/pages/Catalog.tsx",
+            "src/MiniShop.Api/Controllers/CustomersController.cs"
+          ],
+          "evidenceIds": ["architecture-review"],
+          "next": "Add server-paged customer/batch/ledger navigation and test representative data volumes."
+        }
+      ]
+    },
+    {
+      "id": "inventory-pos",
+      "title": "Inventory and POS",
+      "weight": 20,
+      "track": "functional",
+      "summary": "Core stock, checkout and controlled full-refund invariants have real database coverage.",
+      "tasks": [
+        {
+          "id": "product-management",
+          "title": "Product and category management",
+          "status": "verified",
+          "detail": "Owner create/edit/deactivate, unique SKU/barcode, units, prices, search and validation are checked through the API and browser.",
+          "sources": ["src/MiniShop.Api/Controllers/ProductsController.cs"],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "batch-inventory",
+          "title": "Receiving, adjustments and expiry allocation",
+          "status": "verified",
+          "detail": "Batches retain actual cost and expiry; FEFO excludes expired stock; negative final stock and ledger rewriting are rejected.",
+          "sources": ["src/MiniShop.Api/Services/CatalogService.cs"],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "atomic-checkout",
+          "title": "Atomic and idempotent checkout",
+          "status": "verified",
+          "detail": "Sale, payment, stock and credit writes share a transaction; concurrent requests cannot oversell and retries cannot duplicate a sale.",
+          "sources": [
+            "src/MiniShop.Api/Services/CommerceService.cs",
+            "src/MiniShop.Api/Services/ShopWriter.cs"
+          ],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "weighted-totals",
+          "title": "Weighted quantities, cash and discounts",
+          "status": "verified",
+          "detail": "Whole-piece/decimal weight rules, server price snapshots, cent rounding, discount totals and change are tested.",
+          "sources": [
+            "src/MiniShop.Api/Business/Rules.cs",
+            "src/minishop-web/src/format.ts"
+          ],
+          "evidenceIds": ["backend-tests", "frontend-tests", "browser-tests"]
+        },
+        {
+          "id": "full-refunds",
+          "title": "Controlled full-sale reversal",
+          "status": "verified",
+          "detail": "Owner refund appends compensating records, restores original allocations and separates cash returned from remaining debt. Partial refunds are outside this acceptance scope.",
+          "sources": ["src/MiniShop.Api/Services/CommerceService.cs"],
+          "evidenceIds": ["backend-tests"]
+        }
+      ]
+    },
+    {
+      "id": "accounts",
+      "title": "Utang and employee management",
+      "weight": 15,
+      "track": "functional",
+      "summary": "Accounting and basic authentication are verified; broader employee lifecycle acceptance remains.",
+      "tasks": [
+        {
+          "id": "customer-ledger",
+          "title": "Named customers and immutable credit",
+          "status": "verified",
+          "detail": "Customer charges, optional limits and computed balances preserve append-only history rather than overwriting a balance.",
+          "sources": ["src/MiniShop.Api/Controllers/CustomersController.cs"],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "repayments",
+          "title": "Partial/full repayments and credit refunds",
+          "status": "verified",
+          "detail": "Oldest-debt allocation, limits, overpayment rejection, concurrent/duplicate repayments and refund credit allocation are tested.",
+          "sources": ["src/MiniShop.Api/Services/CommerceService.cs"],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "authentication",
+          "title": "Employee authentication and roles",
+          "status": "verified",
+          "detail": "Identity hashing, owner/cashier authorization, CSRF and login/logout work within the tested local API/browser scope.",
+          "sources": [
+            "src/MiniShop.Api/Controllers/AuthController.cs",
+            "src/MiniShop.Api/Program.cs"
+          ],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "employee-lifecycle",
+          "title": "Employee lifecycle and revoked sessions",
+          "status": "needs-verification",
+          "detail": "Create, activation and password-reset endpoints and UI exist. Dedicated tests for deactivate/reactivate, password reset and multi-session revocation are incomplete.",
+          "sources": [
+            "src/MiniShop.Api/Controllers/AdminController.cs",
+            "src/minishop-web/src/pages/Admin.tsx"
+          ],
+          "evidenceIds": ["security-review"],
+          "next": "Verify employee creation, deactivation/reactivation, reset, lockout expiry and revoked sessions through API and browser."
+        },
+        {
+          "id": "cashier-acceptance",
+          "title": "Full cashier permission acceptance",
+          "status": "needs-verification",
+          "detail": "Several owner-only APIs and cross-cashier sales are denied in tests. Exhaustive permissions and cashier-only browser navigation need coverage.",
+          "sources": [
+            "tests/MiniShop.Tests/ApiTests.cs",
+            "src/minishop-web/src/App.tsx"
+          ],
+          "evidenceIds": ["backend-tests"],
+          "next": "Test each role/write permission and the complete cashier workflow, including direct progress-page and API denial."
+        }
+      ]
+    },
+    {
+      "id": "receipts-reports",
+      "title": "Receipts and reports",
+      "weight": 10,
+      "track": "functional",
+      "summary": "Text PDFs, browser receipts and core financial aggregates work; full formatting/export acceptance remains.",
+      "tasks": [
+        {
+          "id": "pdf-slips",
+          "title": "Downloadable supported-text PDF slips",
+          "status": "verified",
+          "detail": "PDF generation, escaping, long receipts, xref offsets and supported-text rendering are verified; unsupported Unicode remains a documented limitation.",
+          "sources": ["src/MiniShop.Api/Services/ReceiptRenderer.cs"],
+          "evidenceIds": ["backend-tests", "receipt-review"]
+        },
+        {
+          "id": "thermal-layout",
+          "title": "80 mm browser thermal layout",
+          "status": "verified",
+          "detail": "The browser print layout hides application chrome, displays item/payment details and renders an 80 mm slip; physical output is tracked separately.",
+          "sources": [
+            "src/minishop-web/src/pages/Sales.tsx",
+            "src/minishop-web/src/styles.css"
+          ],
+          "evidenceIds": ["browser-tests", "receipt-review"]
+        },
+        {
+          "id": "receipt-settings",
+          "title": "58 mm, settings and archival identity",
+          "status": "needs-verification",
+          "detail": "Width/store/footer settings exist, but 58 mm/configuration variations lack full acceptance and historical receipts use current store/customer details.",
+          "sources": [
+            "src/minishop-web/src/pages/Admin.tsx",
+            "src/MiniShop.Api/Services/ReceiptRenderer.cs"
+          ],
+          "evidenceIds": ["receipt-review"],
+          "next": "Verify both widths and configuration extremes; decide and implement immutable receipt identity where required."
+        },
+        {
+          "id": "sales-analytics",
+          "title": "Sales and gross profit analytics",
+          "status": "verified",
+          "detail": "Date ranges, discounted item revenue, cost snapshots and compensating refunds are checked against real PostgreSQL data.",
+          "sources": ["src/MiniShop.Api/Services/ReportService.cs"],
+          "evidenceIds": ["backend-tests"]
+        },
+        {
+          "id": "report-exports",
+          "title": "Inventory, credit and CSV reports",
+          "status": "needs-verification",
+          "detail": "Inventory/credit exports and formula-safe CSV are implemented. Broader reconciliation, dataset volume and spreadsheet-application acceptance are incomplete.",
+          "sources": [
+            "src/MiniShop.Api/Services/ReportService.cs",
+            "src/minishop-web/src/pages/Reports.tsx"
+          ],
+          "evidenceIds": ["backend-tests", "browser-tests"],
+          "next": "Reconcile inventory/credit/date-range exports to fixture totals and inspect them in target spreadsheet tools."
+        }
+      ]
+    },
+    {
+      "id": "testing",
+      "title": "Automated testing",
+      "weight": 10,
+      "track": "readiness",
+      "summary": "Existing automated workflows pass; long-running and platform-wide coverage is not complete.",
+      "tasks": [
+        {
+          "id": "backend-suite",
+          "title": "Backend regression suite",
+          "status": "verified",
+          "detail": "Real PostgreSQL, HTTP and business-rule tests pass; actual run totals are recorded separately.",
+          "sources": [
+            "tests/MiniShop.Tests/CommerceTests.cs",
+            "tests/MiniShop.Tests/ApiTests.cs"
+          ],
+          "evidenceIds": ["backend-tests"]
+        },
+        {
+          "id": "frontend-suite",
+          "title": "Frontend regression suite",
+          "status": "verified",
+          "detail": "Vitest/RTL decimal, form and progress tests are repeatable; this is a completed suite, not a claim of complete UI coverage.",
+          "sources": [
+            "src/minishop-web/src/format.test.ts",
+            "src/minishop-web/src/ui.test.tsx"
+          ],
+          "evidenceIds": ["frontend-tests"]
+        },
+        {
+          "id": "browser-suite",
+          "title": "Built-app browser workflows",
+          "status": "verified",
+          "detail": "Real-API Playwright checkout/credit/recovery/logout workflows are executable against the built app.",
+          "sources": ["src/minishop-web/e2e/shop.spec.ts"],
+          "evidenceIds": ["browser-tests"]
+        },
+        {
+          "id": "failure-invariants",
+          "title": "Concurrency and uncertain response testing",
+          "status": "verified",
+          "detail": "Overselling, duplicate requests, rollback, over-collection and a committed response lost before reload/retry have explicit coverage.",
+          "sources": [
+            "tests/MiniShop.Tests/CommerceTests.cs",
+            "src/minishop-web/e2e/shop.spec.ts"
+          ],
+          "evidenceIds": ["backend-tests", "browser-tests"]
+        },
+        {
+          "id": "soak-recovery-tests",
+          "title": "Soak, power failure and browser matrix",
+          "status": "not-started",
+          "detail": "There is no long-duration load, abrupt-process/power-failure or multi-browser acceptance harness.",
+          "sources": ["docs/TESTING_REPORT.md"],
+          "evidenceIds": [],
+          "next": "Build repeatable soak/restart tests and run a supported-browser matrix with reconciled business invariants."
+        }
+      ]
+    },
+    {
+      "id": "hardware-lan",
+      "title": "Hardware and local network deployment",
+      "weight": 10,
+      "track": "readiness",
+      "summary": "Local operation is proven; the shop's physical devices and trusted LAN are not accepted.",
+      "tasks": [
+        {
+          "id": "local-hosting",
+          "title": "Local Windows build and recovery tools",
+          "status": "verified",
+          "detail": "Build/start, Release hosting, health and the separate-database backup restore drill have recorded successful results.",
+          "sources": [
+            "scripts/Build.ps1",
+            "scripts/Backup.ps1",
+            "scripts/Verify-Backup.ps1"
+          ],
+          "evidenceIds": ["deployment-review"]
+        },
+        {
+          "id": "physical-printer",
+          "title": "Physical thermal printer acceptance",
+          "status": "blocked",
+          "detail": "No shop printer/paper/cutter was available to verify margins, density, pagination and repeated printing at both widths.",
+          "sources": ["docs/USER_MANUAL.md"],
+          "evidenceIds": [],
+          "next": "Owner supplies the intended printer and paper; record accepted 58/80 mm output and repeated-print results.",
+          "releaseGate": true
+        },
+        {
+          "id": "physical-scanner",
+          "title": "Physical barcode scanner acceptance",
+          "status": "blocked",
+          "detail": "Keyboard input is tested, but the actual scanner model, Enter suffix, rapid scans and focus recovery were not available.",
+          "sources": ["src/minishop-web/src/pages/Pos.tsx"],
+          "evidenceIds": [],
+          "next": "Run the intended scanner through rapid, duplicate, unknown and weighted-product scans.",
+          "releaseGate": true
+        },
+        {
+          "id": "trusted-lan",
+          "title": "Trusted HTTPS LAN and WAN-loss drill",
+          "status": "blocked",
+          "detail": "LAN instructions exist; no trusted certificate, shop router/phone setup or actual internet-disconnection drill was available.",
+          "sources": ["docs/DEPLOYMENT_GUIDE.md"],
+          "evidenceIds": [],
+          "next": "Provision trusted HTTPS on the shop LAN and verify phone/PC sales through WAN loss and recovery.",
+          "releaseGate": true
+        },
+        {
+          "id": "managed-recovery",
+          "title": "Managed startup and operational recovery",
+          "status": "partial",
+          "detail": "Manual startup and a technical restore drill exist; managed service restart, retention/off-site recovery and operator reconciliation are not accepted.",
+          "sources": [
+            "scripts/Start.ps1",
+            "scripts/Verify-Backup.ps1",
+            "docs/DEPLOYMENT_GUIDE.md"
+          ],
+          "evidenceIds": ["deployment-review"],
+          "next": "Configure least-privilege managed startup, scheduled protected backups and an operator-led restored-app recovery drill.",
+          "releaseGate": true
+        }
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security and production readiness",
+      "weight": 10,
+      "track": "readiness",
+      "summary": "Application safeguards exist; deployed security and commercial acceptance remain release gates.",
+      "tasks": [
+        {
+          "id": "application-security",
+          "title": "Identity, CSRF and role safeguards",
+          "status": "verified",
+          "detail": "Supported session/permission safeguards are source-reviewed and exercised by authenticated API tests. This is not an independent security certification.",
+          "sources": ["src/MiniShop.Api/Program.cs"],
+          "evidenceIds": ["backend-tests", "security-review"]
+        },
+        {
+          "id": "immutable-audit",
+          "title": "Financial constraints and audit history",
+          "status": "verified",
+          "detail": "Sensitive operations append audit records and protected financial/stock ledgers reject SQL history changes.",
+          "sources": [
+            "src/MiniShop.Api/Data/Migrations/20261017142417_FinancialLinks.cs"
+          ],
+          "evidenceIds": ["backend-tests", "security-review"]
+        },
+        {
+          "id": "dependency-audit",
+          "title": "Dependency advisory review",
+          "status": "verified",
+          "detail": "The recorded npm and transitive NuGet review found no reported advisories in its queried graph on the stated date. Future advisories require another review.",
+          "sources": [
+            "docs/TESTING_REPORT.md",
+            "src/minishop-web/package-lock.json"
+          ],
+          "evidenceIds": ["security-review"]
+        },
+        {
+          "id": "production-credentials",
+          "title": "Production TLS, roles and secret handling",
+          "status": "partial",
+          "detail": "Secure cookie/DPAPI support and deployment guidance exist, but production TLS, least-privilege database credentials and file permissions were not verified.",
+          "sources": [
+            "src/MiniShop.Api/Program.cs",
+            "docs/DEPLOYMENT_GUIDE.md"
+          ],
+          "evidenceIds": ["security-review"],
+          "next": "Stage the deployment with trusted TLS, restricted app/migration roles, private keys and a new empty non-demo database.",
+          "releaseGate": true
+        },
+        {
+          "id": "external-approval",
+          "title": "Independent security and invoicing acceptance",
+          "status": "blocked",
+          "detail": "Independent security review and the shop's invoicing/BIR and retention acceptance require qualified external reviewers and owner decisions.",
+          "sources": ["docs/PROJECT_OVERVIEW.md", "docs/USER_MANUAL.md"],
+          "evidenceIds": [],
+          "next": "Record qualified security and invoicing/privacy/retention review results and resolve findings before commercial rollout.",
+          "releaseGate": true
+        }
+      ]
+    },
+    {
+      "id": "cloud",
+      "title": "Cloud preparation",
+      "weight": 5,
+      "track": "preparation",
+      "summary": "This score covers architecture preparation, not implemented cloud synchronization.",
+      "tasks": [
+        {
+          "id": "local-authority-design",
+          "title": "Local authority and service boundary design",
+          "status": "verified",
+          "detail": "The architecture explicitly keeps checkout authoritative in one transactional store and avoids an unsafe bidirectional first release.",
+          "sources": ["docs/ARCHITECTURE.md"],
+          "evidenceIds": ["cloud-design"]
+        },
+        {
+          "id": "sync-risk-design",
+          "title": "Synchronization risks and conflict outline",
+          "status": "verified",
+          "detail": "Documented outbox/inbox deduplication, global identities, ordering, conflict and privacy risks were reviewed as a design artifact only.",
+          "sources": ["docs/DEPLOYMENT_GUIDE.md"],
+          "evidenceIds": ["cloud-design"]
+        },
+        {
+          "id": "cloud-packaging",
+          "title": "Cloud deployment packaging preparation",
+          "status": "partial",
+          "detail": "A framework-dependent local Release publish works. Cloud manifests, managed secrets and hosting validation are not implemented.",
+          "sources": ["scripts/Build.ps1", "docs/DEPLOYMENT_GUIDE.md"],
+          "evidenceIds": ["deployment-review"],
+          "next": "Choose a hosting target and prepare staging manifests, managed PostgreSQL, secrets and health probes."
+        },
+        {
+          "id": "outbox-contract",
+          "title": "Versioned outbox event contract",
+          "status": "not-started",
+          "detail": "No versioned event schema, ownership policy or replay contract has been drafted in source.",
+          "sources": ["docs/ARCHITECTURE.md"],
+          "evidenceIds": [],
+          "next": "Design and review the event contract and reconciliation invariants before implementing synchronization."
+        },
+        {
+          "id": "cloud-runbook",
+          "title": "Cloud monitoring and recovery runbook",
+          "status": "partial",
+          "detail": "Cloud risks and backups are outlined, but alerting, migration/cutover, rollback and remote restore procedures are not detailed or rehearsed.",
+          "sources": ["docs/DEPLOYMENT_GUIDE.md"],
+          "evidenceIds": ["cloud-design"],
+          "next": "Create a target-specific staging, monitoring, rollback and disaster-recovery runbook."
+        }
+      ]
+    }
+  ],
+  "testRuns": [
+    {
+      "id": "backend",
+      "title": "Backend · xUnit + PostgreSQL",
+      "status": "passed",
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "verifiedAt": "2026-10-17",
+      "command": "dotnet test MiniShop.slnx --no-restore",
+      "evidenceId": "backend-tests"
+    },
+    {
+      "id": "frontend",
+      "title": "Frontend · Vitest + RTL",
+      "status": "passed",
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "verifiedAt": "2026-10-17",
+      "command": "npm.cmd --prefix src/minishop-web test",
+      "evidenceId": "frontend-tests"
+    },
+    {
+      "id": "browser",
+      "title": "Browser · Playwright Chromium",
+      "status": "passed",
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "verifiedAt": "2026-10-17",
+      "command": "npm.cmd --prefix src/minishop-web run test:e2e",
+      "evidenceId": "browser-tests"
+    }
+  ],
+  "priorities": [
+    {
+      "taskId": "production-credentials",
+      "reason": "Protect the operational database and sessions before involving other shop devices.",
+      "acceptance": "Trusted HTTPS, least-privilege app role, protected service keys and an empty non-demo staging database pass acceptance.",
+      "dependsOn": []
+    },
+    {
+      "taskId": "trusted-lan",
+      "reason": "The shop must remain usable when external internet disconnects.",
+      "acceptance": "A phone and second PC complete checkout and repayments through WAN loss and reconnection using trusted HTTPS.",
+      "dependsOn": ["production-credentials"]
+    },
+    {
+      "taskId": "physical-printer",
+      "reason": "Receipt failures directly interrupt counter operations.",
+      "acceptance": "Owner accepts both intended paper widths, long receipts, reprinting and the actual cutter/driver behavior.",
+      "dependsOn": ["receipt-settings"]
+    },
+    {
+      "taskId": "physical-scanner",
+      "reason": "Validate fast and accurate scanning with the hardware cashiers will actually use.",
+      "acceptance": "Rapid repeated scans, focus recovery and unknown codes preserve the expected cart quantities.",
+      "dependsOn": []
+    },
+    {
+      "taskId": "employee-lifecycle",
+      "reason": "Account revocation and recovery need dedicated evidence before workers use the system.",
+      "acceptance": "Creation, deactivate/reactivate, password reset and all existing-session revocation checks pass.",
+      "dependsOn": []
+    },
+    {
+      "taskId": "managed-recovery",
+      "reason": "A backup file alone is not an operational recovery procedure.",
+      "acceptance": "A restarted managed app and a restored copy reconcile stock, cash/credit totals and the last receipt with an operator present.",
+      "dependsOn": ["production-credentials"]
+    },
+    {
+      "taskId": "external-approval",
+      "reason": "Commercial rollout requires qualified acceptance outside the codebase.",
+      "acceptance": "Owner records external review decisions and all blocking findings are resolved.",
+      "dependsOn": [
+        "production-credentials",
+        "trusted-lan",
+        "physical-printer",
+        "managed-recovery"
+      ]
+    }
+  ],
+  "knownIssues": [
+    {
+      "title": "Bounded catalog and history views",
+      "detail": "Several selectors and batch/customer/ledger views cap matches; add server pagination before larger-scale operation."
+    },
+    {
+      "title": "PDF text coverage",
+      "detail": "Downloaded slips transliterate to ASCII; unsupported scripts become question marks. Browser receipts retain Unicode."
+    },
+    {
+      "title": "Receipt identity is not fully historical",
+      "detail": "Old receipts use current store/customer display details. Decide the required immutable archival identity."
+    },
+    {
+      "title": "Pending operation recovery belongs to one tab",
+      "detail": "Closing an uncertain checkout/payment tab can lose its saved request key. Operators must reconcile history before re-entering it."
+    }
+  ],
+  "futureScope": [
+    "Partial line refunds and exchanges",
+    "Expenses, cash-drawer shifts and net-profit accounting",
+    "Direct printer/spooler integration beyond browser printing",
+    "A dark theme and additional visual customization",
+    "Bidirectional cloud synchronization (explicitly outside the initial release)"
+  ]
+}

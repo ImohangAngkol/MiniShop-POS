@@ -49,6 +49,7 @@ builder.Services.AddRateLimiter(o =>
 });
 builder.Services.AddScoped<ShopWriter>(); builder.Services.AddScoped<CatalogService>(); builder.Services.AddScoped<CommerceService>();
 builder.Services.AddScoped<ReportService>(); builder.Services.AddSingleton<IReceiptRenderer, ReceiptRenderer>();
+builder.Services.AddSingleton<DevelopmentProgressReader>();
 var keys = builder.Configuration["DataProtection:Directory"];
 if (!string.IsNullOrWhiteSpace(keys))
 {

@@ -1,6 +1,8 @@
 param([switch]$Browser)
 . "$PSScriptRoot\Env.ps1"
 Set-Location $projectRoot
+& node scripts/update-progress.mjs --check
+if ($LASTEXITCODE -ne 0) { throw 'Progress report validation failed. Review and regenerate it before testing.' }
 & dotnet test MiniShop.slnx --no-restore --logger 'trx;LogFileName=backend.trx' --results-directory .runtime/test-results
 if ($LASTEXITCODE -ne 0) { throw 'Backend tests failed' }
 & npm.cmd --prefix src/minishop-web test
