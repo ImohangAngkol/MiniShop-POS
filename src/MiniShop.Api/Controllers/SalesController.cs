@@ -29,7 +29,13 @@ public sealed class SalesController(ShopDb db, CommerceService commerce, UserMan
     [HttpGet("{id:long}")]
     public async Task<object> Get(long id, CancellationToken ct) => Responses.Sale(await Find(id, ct));
     [HttpGet("{id:long}/pdf")]
-    public async Task<IActionResult> Pdf(long id, CancellationToken ct) { var s = await Find(id, ct); return File(receipts.Pdf(s, await db.Settings.AsNoTracking().SingleAsync(ct)), "application/pdf", s.Reference + ".pdf"); }
+    public async Task<IActionResult> Pdf(long id, CancellationToken ct, int? paperWidth = null)
+    {
+        if (paperWidth is not (null or 58 or 80)) throw new BusinessException("Receipt paper width must be 58 or 80 mm.");
+        var s = await Find(id, ct); var store = await db.Settings.AsNoTracking().SingleAsync(ct);
+        if (paperWidth != null) store.ThermalWidthMm = paperWidth.Value; // Untracked preview only; never changes store settings.
+        return File(receipts.Pdf(s, store), "application/pdf", s.Reference + ".pdf");
+    }
     [HttpPost("{id:long}/refund"), Authorize(Roles = "Owner")]
     public async Task<object> Refund(long id, RefundRequest r, CancellationToken ct) => Responses.Sale(await commerce.Refund(id, r.Reason, User.EmployeeId(), ct));
     private async Task<Sale> Find(long id, CancellationToken ct)

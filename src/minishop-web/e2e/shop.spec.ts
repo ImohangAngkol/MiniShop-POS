@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 test("owner can receive stock, complete a weighted credit sale, repay it, and print a receipt", async ({
   page,
 }) => {

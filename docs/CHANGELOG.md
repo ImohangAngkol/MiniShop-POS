@@ -1,5 +1,27 @@
 # Implementation history
 
+## 2026-10-18 - full software acceptance and reliability verification
+
+- Added an isolated loopback HTTPS acceptance environment with 300 fictional products, 24 baseline households, an owner and two cashiers; existing development, staging and LAN data remain separate.
+- Verified 120 concurrent cashier baskets, scarce-stock and credit-limit races, duplicate requests, lost responses, repayments/refunds, owner-only permissions, browser session revocation, CSV/PDF receipts and independent financial/inventory reconciliation.
+- Fixed discounted product report allocations losing or creating cents; stable integer-cent allocation and refund reversal now have regression coverage.
+- Recorded 96 backend, 32 frontend, 14 Chromium and 17 fictional-shop acceptance scenarios passing; verified all 36 restored table/sequence states, controlled restart/session persistence, build/publish, formatting, migration consistency and dependency checks.
+- Updated progress to 83.8% overall, 94.2% functional and 65.0% readiness. Six device/operational release gates remain open; long-duration soak, power-loss and supported-browser-matrix acceptance remain outstanding. No physical hardware or production approval is claimed.
+
+## 2026-10-18 - LAN and hardware acceptance preparation
+
+- Prepared a separate fictional LAN profile with configurable minishop.local identity, private CA/SAN validation, separate roles/session keys/publish and default loopback-only 5643 listener. No device trust, firewall, router or public network changes were made.
+- Replaced scanner submission from cached fuzzy results with queued exact lookups; added unknown/ambiguous/duplicate/stock/focus/latency coverage. Added 58/80 mm previews, matching PDF widths, fixed-width PDF wrapping, print alignment and mobile POS overflow fixes.
+- Added simulated WAN dependency loss and local-server interruption/retry workflows. Browser HTTPS automation now uses TLS-verifying Node transport rather than a certificate-exception flag.
+- Recorded 82 backend, 32 frontend and 11 browser workflows, with physical scanner/printer/native-device trust and actual LAN/WAN acceptance pending. Overall 82.0%, functional 93.1% and readiness 61.7% remain unchanged; no hardware gate is closed by simulated tests.
+
+## 2026-10-18 - isolated secure local staging
+
+- Added separate fictional PostgreSQL staging on loopback 55433 and HTTPS on localhost 5443, with a generated untrusted certificate, private NTFS configuration and separate DPAPI/session-cookie scope. No trust installation, firewall rule, machine setting, commit or push was performed.
+- Separated migration/bootstrap from non-development web startup. Runtime grants permit necessary commerce/Identity operations while rejecting schema administration, migration writes and financial-history changes. Existing development hosting remains available.
+- Verified 62 backend, 24 frontend and 7 HTTPS browser workflows, strict TLS/security checks, PDF output, migration consistency, dependency advisories and a reconciled temporary-database restore of all 36 table/sequence states.
+- Added role, HTTPS, staging and release-gate documentation. Regenerated progress to 82.0% overall and 61.7% readiness; six release gates remain open, including trusted devices/LAN, service identity, actual hardware and human recovery/security/invoicing acceptance.
+
 ## 2026-10-17 - reviewed development progress tracking
 
 - Audited 45 acceptance tasks across the nine requested weighted categories. Functional development and production readiness are calculated separately; external release gates remain explicit.

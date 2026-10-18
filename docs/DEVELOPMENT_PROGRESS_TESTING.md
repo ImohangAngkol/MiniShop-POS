@@ -1,5 +1,7 @@
 # Development progress change: verification evidence
 
+Current milestone evidence: [SOFTWARE_ACCEPTANCE_REPORT](SOFTWARE_ACCEPTANCE_REPORT.md). Verified totals are **96 backend, 32 frontend, 14 browser and 17 fictional-shop acceptance scenarios**, all passing. The JSON records **83.8% overall, 94.2% functional and 65.0% readiness**: cashier permission acceptance is verified; bounded workload/controlled restart/recovery earns partial reliability credit. Long-duration soak, abrupt power loss, browser matrix and all six operational/device release gates remain open. Earlier milestone numbers below are historical. Run `node scripts/update-progress.mjs` and `node scripts/update-progress.mjs --check`; progress unit/browser assertions use the same reviewed arithmetic.
+
 Reviewed on 2026-10-17 (Asia/Manila), against clean baseline commit `afe3b92` plus local progress-tracking changes. All changes are local; no commit or GitHub push was performed.
 
 ## Audit and scope

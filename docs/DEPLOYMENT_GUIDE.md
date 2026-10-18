@@ -1,5 +1,17 @@
 # Local deployment, LAN, backup and future cloud
 
+## Full software acceptance
+
+The [software acceptance report](SOFTWARE_ACCEPTANCE_REPORT.md) records the separate 300-product fictional environment at **https://127.0.0.1:5843** / `minishop_acceptance`, its workload, reconciled ledgers, controlled restart and isolated backup restore. Follow its reproduction commands before interpreting software verification as shop readiness. Its restricted runtime and migrator roles, keys, credentials and publish directory are separate from development, staging and LAN. It shares the already-running loopback staging PostgreSQL cluster; do not stop that cluster while any profile is using it. No certificate trust or network configuration is installed by the acceptance scripts.
+
+## LAN and hardware acceptance profile
+
+The separate [LAN profile](LAN_GUIDE.md) prepares configurable `minishop.local`, a private CA/SAN certificate and its own fictional database/roles/keys/publish. `Start-Lan.ps1` defaults to **127.0.0.1:5643**. No private-adapter listener, firewall rule, trust, DNS or router change is made automatically. The guide includes explicit approval steps and scoped commands. Use [SHOP_DEVICE_ACCEPTANCE](SHOP_DEVICE_ACCEPTANCE.md) for real PCs/phones/scanner/printer/WAN-loss acceptance and [LAN_VERIFICATION](LAN_VERIFICATION.md) for simulated versus physical evidence. Existing development and localhost staging are preserved.
+
+## Verified isolated local staging
+
+The secure staging workflow is implemented separately from development. Follow [STAGING_GUIDE](STAGING_GUIDE.md) for localhost HTTPS, private configuration, fictional data and backup/restore acceptance; see [DATABASE_ROLES](DATABASE_ROLES.md) for exact permissions and [STAGING_VERIFICATION](STAGING_VERIFICATION.md) for evidence and remaining gates. Staging uses its own cluster on 55433 and web origin on 5443. Certificate trust and LAN/firewall changes require explicit approval and are not performed by any setup script.
+
 ## Stage 1: one Windows PC
 
 Use Initialize-Dev and Start as in README for localhost development. The built frontend is served by the API on 5080, while the separate workspace-local PostgreSQL cluster listens only on 55432. Starting the app does not start a stopped database; rerun Initialize-Dev first. Ctrl+C stops the app. `Stop-DevDatabase.ps1` uses PostgreSQL's fast, clean shutdown, which waits for rollback/checkpoint rather than killing database files.
@@ -21,9 +33,11 @@ Use a dedicated Windows account with access only to the published app, private c
 
 ## Operational PostgreSQL roles
 
-Use a fresh database with demo seeding disabled. Separate a migration owner from a runtime application login. The runtime login needs CONNECT, schema USAGE, SELECT and the appropriate INSERT/UPDATE/sequence privileges, and no superuser/CREATEDB/role-management/DDL permissions. Ledgers should have SELECT/INSERT only; immutable triggers are additional protection. The migration identity owns schema/triggers and runs EF migrations during controlled maintenance. Identity tables need the expected account/session updates. Test this exact least-privilege role configuration in staging; the automated database suite used an isolated cluster administrator to create temporary databases.
+For operations, use a fresh database with demo seeding disabled. Staging deliberately uses fictional demo data and must not be promoted as shop data. Separate a migration owner from a runtime application login. The verified grant list and permissions tests are in [DATABASE_ROLES](DATABASE_ROLES.md). Automated fixtures use an administrator only to provision disposable databases/roles and seed; the API and commerce suites then run under the restricted runtime role.
 
 The first owner uses explicit Bootstrap environment credentials. Remove bootstrap password values from the deployed service configuration after successful initialization. Do not expose public registration. Keep database backups before each migration and check `dotnet ef migrations has-pending-model-changes --project src/MiniShop.Api` during development.
+
+Non-development web startup now rejects automatic migration/bootstrap and elevated database roles. Supply `Bootstrap__Enabled=false` and `Database__AutoMigrate=false`; run migrations/bootstrap separately as the schema owner first. The EF design-time factory accepts `ConnectionStrings__Migrations` for that controlled process, and does not guess a database when no configuration is supplied. Keep migration/admin credentials outside the web service's environment and OS access. PostgreSQL remains on the same computer over loopback SCRAM; if relocating it later, add verified database TLS rather than assuming this local transport configuration suffices.
 
 ## Stage 2: phones and PCs on shop Wi-Fi
 
@@ -34,10 +48,14 @@ Example environment shape (certificate passwords and database credentials must b
 ```text
 ASPNETCORE_ENVIRONMENT=Production
 ASPNETCORE_URLS=https://0.0.0.0:5443
+AllowedHosts=shop.example.internal
+LocalStaging__Enabled=false
 Kestrel__Certificates__Default__Path=C:\PrivateConfig\shop.pfx
 Kestrel__Certificates__Default__Password=<set privately>
 DataProtection__Directory=C:\PrivateConfig\MiniShopKeys
 Bootstrap__SeedDemo=false
+Bootstrap__Enabled=false
+Database__AutoMigrate=false
 ```
 
 If TLS terminates at a reverse proxy, configure forwarded headers explicitly for known proxy IPs and validate HTTPS redirects/cookie behavior. The current default is direct Kestrel TLS; do not assume arbitrary forwarded headers are trusted.

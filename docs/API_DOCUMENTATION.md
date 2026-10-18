@@ -14,6 +14,7 @@ For mutations: GET `/api/auth/csrf`, keep its cookie, send the response `token` 
 | GET /categories | Signed in | Ordered category array |
 | POST /categories | Owner | `{name}` → category |
 | GET /products | Signed in | `search,categoryId,includeInactive,page,pageSize` → `{items,total,page,pageSize}`; max size 200 |
+| GET /products/scan | Signed in | Required `code` (1–80 chars); exact active barcode/SKU lookup, independent of category/paging; 404 unknown, 409 ambiguous; cashier cost remains null |
 | POST /products | Owner | Product body below → `{id}` |
 | PUT /products/{id} | Owner | Same product body; 204 |
 | DELETE /products/{id} | Owner | Soft deactivation; 204 |
@@ -24,7 +25,7 @@ For mutations: GET `/api/auth/csrf`, keep its cookie, send the response `token` 
 | POST /sales | Signed in | Checkout body below → sale and item snapshots |
 | GET /sales | Signed in | `from,to,search,page` → `{total,items}`; 50 per page; cashiers see only own sales |
 | GET /sales/{id} | Own sale or Owner | Sale/item/receipt data; other cashier's sale is forbidden |
-| GET /sales/{id}/pdf | Own sale or Owner | `application/pdf` attachment |
+| GET /sales/{id}/pdf | Own sale or Owner | `application/pdf` attachment; optional `paperWidth=58` or `80` overrides only this PDF's layout, never stored settings |
 | POST /sales/{id}/refund | Owner | `{reason}`; full idempotent reversal → sale |
 | GET /customers | Signed in | Optional search; first 500 ordered matches, includes balance |
 | POST /customers | Signed in | `{name,contact,creditLimit,active}`; cashier must use null limit and active=true |

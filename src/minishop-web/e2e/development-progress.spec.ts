@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test.beforeEach(async ({ page }) => {
   const email = process.env.E2E_EMAIL,
@@ -29,14 +29,14 @@ test("owner can inspect reviewed progress, evidence and a responsive mobile dash
   await expect(
     page.getByRole("heading", { name: "Development progress", exact: true }),
   ).toBeVisible();
-  await expect(page.getByTestId("overall-progress")).toHaveText("81.5%");
-  await expect(page.getByTestId("functional-progress")).toHaveText("93.1%");
+  await expect(page.getByTestId("overall-progress")).toHaveText("83.8%");
+  await expect(page.getByTestId("functional-progress")).toHaveText("94.2%");
   await expect(
     page.getByRole("progressbar", {
       name: "Overall project completion",
       exact: true,
     }),
-  ).toHaveAttribute("aria-valuenow", "81.5");
+  ).toHaveAttribute("aria-valuenow", "83.8");
   await expect(page.getByText("6 release gates still open")).toBeVisible();
   const response = await page.request.get("/api/admin/development-progress");
   expect(response.status()).toBe(200);
@@ -58,7 +58,7 @@ test("owner can inspect reviewed progress, evidence and a responsive mobile dash
           bar.getBoundingClientRect().width) *
         100,
     );
-  expect(renderedRatio).toBeCloseTo(81.5, 0);
+  expect(renderedRatio).toBeCloseTo(83.75, 0);
   await page.screenshot({
     path: "../../.runtime/development-progress-desktop.png",
     fullPage: true,
@@ -109,7 +109,7 @@ test("an unavailable progress snapshot renders an honest recoverable state", asy
   await expect(page.getByRole("progressbar")).toHaveCount(0);
   await page.unroute("**/api/admin/development-progress");
   await page.getByRole("button", { name: "Try again" }).click();
-  await expect(page.getByTestId("overall-progress")).toHaveText("81.5%");
+  await expect(page.getByTestId("overall-progress")).toHaveText("83.8%");
 });
 
 test("cashiers cannot navigate to progress or retrieve its private API data", async ({

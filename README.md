@@ -4,6 +4,8 @@ A working React + ASP.NET Core 10 + PostgreSQL application for a small Philippin
 
 **Status:** locally implemented and tested; commercial deployment still requires operational, printer, security, and invoicing review. See [testing evidence](docs/TESTING_REPORT.md) and [known limits](docs/PROJECT_OVERVIEW.md). The current development database contains labeled fictional demo and E2E records.
 
+The latest [software acceptance report](docs/SOFTWARE_ACCEPTANCE_REPORT.md) covers a separate 300-product fictional database, concurrent cashier workloads, cent-exact financial/inventory reconciliation and isolated recovery. Progress is **83.8% overall, 94.2% functional and 65.0% production readiness**, with six release gates still open. Software verification does not claim physical scanner/printer or native LAN device acceptance.
+
 ## Run on this Windows computer
 
 Open PowerShell in `C:\Users\User\Desktop\Mini Shop POS`:
@@ -41,7 +43,7 @@ npm.cmd --prefix src/minishop-web run dev
 # http://127.0.0.1:5173 proxies /api to the backend.
 ```
 
-Stop the app before rebuilding backend tests on Windows because its executable can be locked. Real database tests create and remove their own randomly named databases; the configured test role needs CREATEDB.
+Stop a debug app before rebuilding backend tests on Windows because its executable can be locked. Real database tests create and remove their own randomly named databases and restricted runtime roles; the test-only provisioner needs database/role administration privileges. The application under test uses the restricted role.
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test.ps1
@@ -54,7 +56,13 @@ npm.cmd --prefix src/minishop-web exec -- playwright install chromium
 npm.cmd --prefix src/minishop-web run test:e2e
 ```
 
-Browser tests write clearly named fictional records to the selected instance. Run them only against a development database. Playwright browsers and all caches live under ignored `.runtime/` when `Env.ps1` is loaded. See [SETUP_GUIDE](docs/SETUP_GUIDE.md) for complete prerequisites and recovery from common errors.
+Browser tests write clearly named fictional records to the selected instance. Run them only against development or the dedicated fictional staging instance. Playwright browsers and all caches live under ignored `.runtime/` when `Env.ps1` is loaded. See [SETUP_GUIDE](docs/SETUP_GUIDE.md) for complete prerequisites and recovery from common errors.
+
+## Isolated secure staging
+
+Use `scripts/Initialize-Staging.ps1` then `scripts/Start-Staging.ps1` for **https://localhost:5443**, with a separate fictional database on loopback port 55433, a restricted runtime login, separate migration credentials and DPAPI session keys. No certificate is trusted automatically, no firewall port is opened, and development remains available on 5080. Run `scripts/Test-Staging.ps1 -Browser`; after stopping staging, run `scripts/Test-StagingBackup.ps1` for exact restore reconciliation. Read [staging/HTTPS instructions](docs/STAGING_GUIDE.md), [role permissions](docs/DATABASE_ROLES.md) and [verification/release gates](docs/STAGING_VERIFICATION.md) before use.
+
+For the next device milestone, [LAN_GUIDE](docs/LAN_GUIDE.md) prepares a **separate** fictional LAN rehearsal on loopback 5643 with configurable `minishop.local`, private CA and its own database/roles/keys. Follow [SHOP_DEVICE_ACCEPTANCE](docs/SHOP_DEVICE_ACCEPTANCE.md) for computers/phones/HID scanners/58–80 mm printers and [verification](docs/LAN_VERIFICATION.md) for automated versus physical evidence. Actual network exposure, device trust, hardware procurement and operator acceptance remain pending; the default scripts do not configure firewall/router/trust.
 
 ## Back up the database
 

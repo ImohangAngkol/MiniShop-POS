@@ -3,6 +3,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using MiniShop.Api.Business;
 using MiniShop.Api.Data;
+using MiniShop.Api.Entities;
 
 namespace MiniShop.Api.Services;
 
@@ -36,10 +37,22 @@ public sealed class ReportService(ShopDb db)
                     sales = booked.Where(x => LocalDate(x.CreatedAt) == day).Sum(x => x.Total) - refunded.Where(x => LocalDate(x.RefundedAt!.Value) == day).Sum(x => x.Total)
                 };
             }),
-            products = booked.SelectMany(x => x.Items.Select(i => new { i.ProductId, i.Name, i.Quantity, Revenue = i.LineTotal * (x.Subtotal == 0 ? 0 : x.Total / x.Subtotal), i.CostTotal }))
-                .Concat(refunded.SelectMany(x => x.Items.Select(i => new { i.ProductId, i.Name, Quantity = -i.Quantity, Revenue = -i.LineTotal * (x.Subtotal == 0 ? 0 : x.Total / x.Subtotal), CostTotal = -i.CostTotal })))
+            products = booked.SelectMany(x => ProductLines(x, 1))
+                .Concat(refunded.SelectMany(x => ProductLines(x, -1)))
                 .GroupBy(x => x.ProductId).Select(x => new { id = x.Key, name = x.First().Name, quantity = x.Sum(i => i.Quantity), revenue = Rules.Money(x.Sum(i => i.Revenue)), grossProfit = Rules.Money(x.Sum(i => i.Revenue - i.CostTotal)) }).OrderByDescending(x => x.revenue)
         };
+    }
+    private sealed record ProductLine(int ProductId, string Name, decimal Quantity, decimal Revenue, decimal CostTotal);
+    private static IEnumerable<ProductLine> ProductLines(Sale sale, int sign)
+    {
+        // Allocate the discounted total in integer cents using largest remainders.
+        // Independent per-product rounding can otherwise lose/create cents.
+        var items = sale.Items.OrderBy(item => item.Id).ToList();
+        var exact = items.Select(item => sale.Subtotal == 0 ? 0 : sale.Total * 100 * item.LineTotal / sale.Subtotal).ToArray();
+        var cents = exact.Select(decimal.Floor).ToArray();
+        var remainder = (int)(sale.Total * 100 - cents.Sum());
+        foreach (var index in Enumerable.Range(0, items.Count).OrderByDescending(i => exact[i] - cents[i]).ThenBy(i => items[i].Id).Take(remainder)) cents[index]++;
+        return items.Select((item, index) => new ProductLine(item.ProductId, item.Name, sign * item.Quantity, sign * cents[index] / 100, sign * item.CostTotal));
     }
     public async Task<object> Dashboard(CancellationToken ct)
     {

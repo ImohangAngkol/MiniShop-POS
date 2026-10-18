@@ -6,14 +6,14 @@ import { ProgressDashboard } from "./DevelopmentProgress";
 describe("reviewed development progress dashboard", () => {
   it("shows separate scores, pending work and release gates", () => {
     render(<ProgressDashboard data={audit} />);
-    expect(screen.getByTestId("overall-progress")).toHaveTextContent("81.5%");
+    expect(screen.getByTestId("overall-progress")).toHaveTextContent("83.8%");
     expect(screen.getByTestId("functional-progress")).toHaveTextContent(
-      "93.1%",
+      "94.2%",
     );
     expect(screen.getByText("6 release gates still open")).toBeInTheDocument();
     expect(
       screen.getByRole("progressbar", { name: "Overall project completion" }),
-    ).toHaveAttribute("aria-valuenow", "81.5");
+    ).toHaveAttribute("aria-valuenow", "83.8");
     expect(screen.getByText(/not a live test monitor/)).toBeInTheDocument();
   });
   it("includes inspectable feature classifications, evidence and acceptance steps", () => {

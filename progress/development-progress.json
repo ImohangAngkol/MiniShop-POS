@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
   "project": "MiniShop POS",
-  "updatedAt": "2026-10-17",
-  "phase": "Local acceptance and deployment hardening",
-  "baselineRevision": "afe3b92",
+  "updatedAt": "2026-10-18",
+  "phase": "Software acceptance and bounded reliability verified; shop device and operational gates pending",
+  "baselineRevision": "039d3c0",
   "assessmentNote": "A reviewed roadmap score, not a probability of safety or an estimate of remaining engineering hours. Completion earns credit only for the stated acceptance scope and evidence. Production rollout remains blocked until every release gate is verified. Future optional features are excluded from the initial-release score.",
   "evidence": [
     {
@@ -23,44 +23,54 @@
       "id": "backend-tests",
       "title": "PostgreSQL and authenticated API tests",
       "method": "automated",
-      "verifiedAt": "2026-10-17",
+      "verifiedAt": "2026-10-18",
       "paths": [
         "tests/MiniShop.Tests/CommerceTests.cs",
         "tests/MiniShop.Tests/ApiTests.cs",
         "tests/MiniShop.Tests/RulesTests.cs",
         "tests/MiniShop.Tests/DevelopmentProgressTests.cs",
         "docs/DEVELOPMENT_PROGRESS_TESTING.md",
-        "docs/TESTING_REPORT.md"
+        "docs/TESTING_REPORT.md",
+        "docs/STAGING_VERIFICATION.md",
+        "tests/MiniShop.Tests/SecurityTests.cs",
+        "docs/LAN_VERIFICATION.md",
+        "tests/MiniShop.Tests/AcceptanceTests.cs"
       ],
-      "result": "Baseline rerun: 32 passed. After the progress change, 38 passed with zero failures/skips, including owner/cashier/anonymous progress access and missing/malformed snapshot checks. Existing coverage exercises actual PostgreSQL migrations, stock concurrency, duplicate checkout, rollback, repayments, refunds, ledger protection, roles and CSRF. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+      "result": "96 backend cases passed, including three discounted/free product allocation and refund regressions, 11 acceptance isolation guards and the existing commerce/authentication/restricted-database/LAN checks."
     },
     {
       "id": "frontend-tests",
       "title": "Frontend totals and accessible forms",
       "method": "automated",
-      "verifiedAt": "2026-10-17",
+      "verifiedAt": "2026-10-18",
       "paths": [
         "src/minishop-web/src/format.test.ts",
         "src/minishop-web/src/ui.test.tsx",
         "src/minishop-web/src/development-progress/model.test.ts",
         "src/minishop-web/src/pages/DevelopmentProgress.test.tsx",
         "docs/DEVELOPMENT_PROGRESS_TESTING.md",
-        "docs/TESTING_REPORT.md"
+        "docs/TESTING_REPORT.md",
+        "docs/STAGING_VERIFICATION.md",
+        "docs/LAN_VERIFICATION.md"
       ],
-      "result": "Baseline rerun: six tests passed. After the progress change, all 24 passed, including independent weighted-point/track arithmetic, evidence validation, actual audit totals, disclosure rendering, retries and missing-data states. Existing decimal/form checks remain passing. This is not a full accessibility audit. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+      "result": "32 frontend cases pass: previous 24 plus five scanner queue/unknown/stock/focus/race cases and three same-origin/unreachable-server feedback cases."
     },
     {
       "id": "browser-tests",
       "title": "Built application browser acceptance",
       "method": "automated",
-      "verifiedAt": "2026-10-17",
+      "verifiedAt": "2026-10-18",
       "paths": [
         "src/minishop-web/e2e/shop.spec.ts",
         "src/minishop-web/e2e/development-progress.spec.ts",
         "docs/DEVELOPMENT_PROGRESS_TESTING.md",
-        "docs/TESTING_REPORT.md"
+        "docs/TESTING_REPORT.md",
+        "docs/STAGING_VERIFICATION.md",
+        "src/minishop-web/e2e/staging-security.spec.ts",
+        "docs/LAN_VERIFICATION.md",
+        "src/minishop-web/e2e/software-acceptance.spec.ts"
       ],
-      "result": "All six Chromium workflows passed after the progress change: the three existing shop workflows plus owner progress/evidence/mobile rendering, unavailable-data recovery, and cashier page/API denial. Original coverage includes delivery, weighted credit checkout, repayment, PDF/print, committed-response-loss recovery and logout. See docs/DEVELOPMENT_PROGRESS_TESTING.md."
+      "result": "14 Chromium workflows passed on isolated loopback HTTPS with strict Node CA validation, including full-catalog weighted checkout, complete cashier browser navigation and employee creation/password reset/deactivation/reactivation. Native PC/phone trust and physical device acceptance remain pending."
     },
     {
       "id": "receipt-review",
@@ -108,6 +118,65 @@
       "verifiedAt": "2026-10-17",
       "paths": ["docs/ARCHITECTURE.md", "docs/DEPLOYMENT_GUIDE.md"],
       "result": "Reviewed the local authority, no-bidirectional-sync initial scope, outbox/inbox deduplication proposal and conflict risks. This verifies the documented design only, not a running cloud or synchronization implementation."
+    },
+    {
+      "id": "secure-local-staging",
+      "title": "Restricted-role HTTPS staging and exact recovery drill",
+      "method": "operational",
+      "verifiedAt": "2026-10-18",
+      "paths": [
+        "docs/STAGING_VERIFICATION.md",
+        "docs/STAGING_GUIDE.md",
+        "docs/DATABASE_ROLES.md",
+        "scripts/Initialize-Staging.ps1",
+        "scripts/Start-Staging.ps1",
+        "scripts/Test-Staging.ps1",
+        "scripts/Test-StagingBackup.ps1",
+        "scripts/verify-staging-https.mjs",
+        "src/MiniShop.Api/Data/RuntimeDatabasePolicy.cs",
+        "tests/MiniShop.Tests/SecurityTests.cs",
+        "src/minishop-web/e2e/staging-security.spec.ts"
+      ],
+      "result": "Separate fictional cluster/database, restricted runtime and separate migration identities, localhost TLS validated with explicit test trust, private configuration and DPAPI keys. All API/commerce tests use restricted grants; HTTPS browser refund/utang/stock regression passes. Runtime backup restored as migration owner into a disposable database: all 36 table/sequence states and stock/cash/credit/refund/last receipt reconciliation match. No OS certificate trust, firewall/service changes or production acceptance is claimed."
+    },
+    {
+      "id": "lan-device-preparation",
+      "title": "LAN configuration, keyboard scanning, thermal layouts and interruption simulation",
+      "method": "automated",
+      "verifiedAt": "2026-10-18",
+      "paths": [
+        "docs/LAN_VERIFICATION.md",
+        "docs/LAN_GUIDE.md",
+        "docs/SHOP_DEVICE_ACCEPTANCE.md",
+        "scripts/Prepare-Lan.ps1",
+        "scripts/Start-Lan.ps1",
+        "scripts/Test-Lan.ps1",
+        "scripts/verify-lan-config.mjs",
+        "scripts/verify-lan-https.mjs",
+        "src/MiniShop.Api/Authentication/LanSecurity.cs",
+        "tests/MiniShop.Tests/LanTests.cs",
+        "src/minishop-web/src/pages/Pos.test.tsx",
+        "src/minishop-web/e2e/shop-devices.spec.ts",
+        "src/minishop-web/e2e/fixtures.ts",
+        "src/minishop-web/scripts/verify-device-receipts.mjs",
+        "scripts/Test-StagingBackup.ps1"
+      ],
+      "result": "Separate fictional LAN profile defaults to loopback only; proposed minishop.local is configurable. Restricted roles, explicit private IPv4/host/DB guards, private CA/SAN/time and wrong-host rejection checks are exercised. Keyboard scans use fresh exact lookups with queue/unknown/duplicate/stock/focus tests. Browser/PDF 58/80 mm previews and simulated WAN/local interruption workflows have dedicated checks. TLS-verifying Node transport replaces the earlier browser certificate-exception flag. No physical scanner/printer, native phone/PC trust, actual LAN binding or WAN hardware acceptance is claimed. The separate fictional LAN backup/restore drill matches all 36 public table/sequence states and stock/cash/credit/refund/last-receipt totals through the restricted role; original data is unchanged. No operator/off-site recovery acceptance is claimed."
+    },
+    {
+      "id": "software-acceptance",
+      "title": "Fictional full software acceptance and reconciliation",
+      "method": "automated",
+      "verifiedAt": "2026-10-18",
+      "paths": [
+        "docs/SOFTWARE_ACCEPTANCE_REPORT.md",
+        "tools/MiniShop.Staging/AcceptanceDataset.cs",
+        "tools/MiniShop.Staging/AcceptanceReconciliation.cs",
+        "src/minishop-web/scripts/software-acceptance.mjs",
+        "src/minishop-web/e2e/software-acceptance.spec.ts",
+        "scripts/Test-AcceptanceRecovery.ps1"
+      ],
+      "result": "300 fictional products, 24 baseline households, two cashiers; 17 acceptance scenarios, 96 backend, 32 frontend and 14 browser workflows passed. 120 bounded concurrent baskets, scarce-stock/credit-limit races, retry safety, complete cashier role denials, cent-exact reports, CSV/PDF layouts, restricted-role backup/restore and exact controlled-restart/session reconciliation verified. Long-duration soak, abrupt power failure, browser matrix and physical devices remain unverified."
     }
   ],
   "milestones": [
@@ -336,25 +405,30 @@
           "id": "employee-lifecycle",
           "title": "Employee lifecycle and revoked sessions",
           "status": "needs-verification",
-          "detail": "Create, activation and password-reset endpoints and UI exist. Dedicated tests for deactivate/reactivate, password reset and multi-session revocation are incomplete.",
+          "detail": "Restricted-role API tests cover two-session revocation, lockout/expiry and logout. Chromium now verifies employee creation, password-reset revocation, deactivation and reactivation. Actual shop-client and operator account-recovery acceptance remains pending.",
           "sources": [
             "src/MiniShop.Api/Controllers/AdminController.cs",
-            "src/minishop-web/src/pages/Admin.tsx"
+            "src/minishop-web/src/pages/Admin.tsx",
+            "tests/MiniShop.Tests/SecurityTests.cs"
           ],
-          "evidenceIds": ["security-review"],
-          "next": "Verify employee creation, deactivation/reactivation, reset, lockout expiry and revoked sessions through API and browser."
+          "evidenceIds": [
+            "security-review",
+            "secure-local-staging",
+            "software-acceptance"
+          ],
+          "next": "Exercise the complete employee lifecycle and multi-session revocation through the browser on actual shop clients."
         },
         {
           "id": "cashier-acceptance",
           "title": "Full cashier permission acceptance",
-          "status": "needs-verification",
-          "detail": "Several owner-only APIs and cross-cashier sales are denied in tests. Exhaustive permissions and cashier-only browser navigation need coverage.",
+          "status": "verified",
+          "detail": "Both cashiers denied all 22 tested owner-only operations plus private progress API; discount/credit-limit attempts and cross-cashier sale/PDF access denied. Real cashier browser sale, hidden owner navigation and all direct owner routes pass automated acceptance.",
           "sources": [
             "tests/MiniShop.Tests/ApiTests.cs",
-            "src/minishop-web/src/App.tsx"
+            "src/minishop-web/src/App.tsx",
+            "src/minishop-web/e2e/software-acceptance.spec.ts"
           ],
-          "evidenceIds": ["backend-tests"],
-          "next": "Test each role/write permission and the complete cashier workflow, including direct progress-page and API denial."
+          "evidenceIds": ["backend-tests", "software-acceptance"]
         }
       ]
     },
@@ -388,13 +462,14 @@
           "id": "receipt-settings",
           "title": "58 mm, settings and archival identity",
           "status": "needs-verification",
-          "detail": "Width/store/footer settings exist, but 58 mm/configuration variations lack full acceptance and historical receipts use current store/customer details.",
+          "detail": "Both 58/80 mm preview/PDF widths, long names, aligned amounts and print-media offsets are exercised. Store/default width remains configurable. Historical store/customer identity is still mutable and requires a policy/implementation decision.",
           "sources": [
             "src/minishop-web/src/pages/Admin.tsx",
-            "src/MiniShop.Api/Services/ReceiptRenderer.cs"
+            "src/MiniShop.Api/Services/ReceiptRenderer.cs",
+            "src/minishop-web/e2e/shop-devices.spec.ts"
           ],
-          "evidenceIds": ["receipt-review"],
-          "next": "Verify both widths and configuration extremes; decide and implement immutable receipt identity where required."
+          "evidenceIds": ["receipt-review", "lan-device-preparation"],
+          "next": "Complete actual printer/configuration acceptance and decide/implement immutable historical receipt identity where required."
         },
         {
           "id": "sales-analytics",
@@ -469,11 +544,15 @@
         {
           "id": "soak-recovery-tests",
           "title": "Soak, power failure and browser matrix",
-          "status": "not-started",
-          "detail": "There is no long-duration load, abrupt-process/power-failure or multi-browser acceptance harness.",
-          "sources": ["docs/TESTING_REPORT.md"],
-          "evidenceIds": [],
-          "next": "Build repeatable soak/restart tests and run a supported-browser matrix with reconciled business invariants."
+          "status": "partial",
+          "detail": "A repeatable isolated fictional workload verifies 120 baskets at concurrency eight plus stock/credit races, exact ledgers, controlled process restart, preserved secure session and separate-database restore. Long-duration soak, abrupt power/process interruption and a supported-browser matrix remain unverified.",
+          "sources": [
+            "docs/TESTING_REPORT.md",
+            "scripts/Test-AcceptanceRecovery.ps1",
+            "src/minishop-web/scripts/software-acceptance.mjs"
+          ],
+          "evidenceIds": ["software-acceptance"],
+          "next": "Extend bounded tests to long-duration load, crash/power interruption and actual supported browsers, with operator-reviewed reconciliation."
         }
       ]
     },
@@ -500,9 +579,13 @@
           "id": "physical-printer",
           "title": "Physical thermal printer acceptance",
           "status": "blocked",
-          "detail": "No shop printer/paper/cutter was available to verify margins, density, pagination and repeated printing at both widths.",
-          "sources": ["docs/USER_MANUAL.md"],
-          "evidenceIds": [],
+          "detail": "58/80 mm browser previews, print media and width-matched fixed-glyph PDFs have automated layout/content tests. No physical printer, driver, paper or cutter is selected/accepted.",
+          "sources": [
+            "docs/USER_MANUAL.md",
+            "src/minishop-web/e2e/shop-devices.spec.ts",
+            "docs/SHOP_DEVICE_ACCEPTANCE.md"
+          ],
+          "evidenceIds": ["receipt-review", "lan-device-preparation"],
           "next": "Owner supplies the intended printer and paper; record accepted 58/80 mm output and repeated-print results.",
           "releaseGate": true
         },
@@ -510,19 +593,29 @@
           "id": "physical-scanner",
           "title": "Physical barcode scanner acceptance",
           "status": "blocked",
-          "detail": "Keyboard input is tested, but the actual scanner model, Enter suffix, rapid scans and focus recovery were not available.",
-          "sources": ["src/minishop-web/src/pages/Pos.tsx"],
-          "evidenceIds": [],
-          "next": "Run the intended scanner through rapid, duplicate, unknown and weighted-product scans.",
+          "detail": "USB HID/typed Enter input now has exact API lookups, queued duplicate/unknown/stock/focus/slow-response tests. No physical scanner model has been selected or tested.",
+          "sources": [
+            "src/minishop-web/src/pages/Pos.tsx",
+            "src/minishop-web/src/pages/Pos.tsx",
+            "src/minishop-web/src/pages/Pos.test.tsx",
+            "docs/SHOP_DEVICE_ACCEPTANCE.md"
+          ],
+          "evidenceIds": ["lan-device-preparation"],
+          "next": "Select/acquire a USB HID scanner, configure its layout/Enter suffix and record actual rapid/duplicate/unknown/weighted/focus acceptance.",
           "releaseGate": true
         },
         {
           "id": "trusted-lan",
           "title": "Trusted HTTPS LAN and WAN-loss drill",
           "status": "blocked",
-          "detail": "LAN instructions exist; no trusted certificate, shop router/phone setup or actual internet-disconnection drill was available.",
-          "sources": ["docs/DEPLOYMENT_GUIDE.md"],
-          "evidenceIds": [],
+          "detail": "Separate private-CA/SAN/role profile, proposed minishop.local and default loopback rehearsal are verified; external-origin loss and local-request interruption are simulated. Approved device trust, actual LAN/DNS/router access and real WAN-loss acceptance remain pending.",
+          "sources": [
+            "docs/DEPLOYMENT_GUIDE.md",
+            "docs/STAGING_GUIDE.md",
+            "docs/LAN_GUIDE.md",
+            "src/MiniShop.Api/Authentication/LanSecurity.cs"
+          ],
+          "evidenceIds": ["lan-device-preparation"],
           "next": "Provision trusted HTTPS on the shop LAN and verify phone/PC sales through WAN loss and recovery.",
           "releaseGate": true
         },
@@ -530,13 +623,14 @@
           "id": "managed-recovery",
           "title": "Managed startup and operational recovery",
           "status": "partial",
-          "detail": "Manual startup and a technical restore drill exist; managed service restart, retention/off-site recovery and operator reconciliation are not accepted.",
+          "detail": "Technical staging restore now reconciles every public table/sequence and stock/cash/credit/refund/receipt totals through the restricted role. Managed service restart, scheduled/off-site recovery and operator-led restored-app acceptance remain outstanding.",
           "sources": [
             "scripts/Start.ps1",
             "scripts/Verify-Backup.ps1",
-            "docs/DEPLOYMENT_GUIDE.md"
+            "docs/DEPLOYMENT_GUIDE.md",
+            "scripts/Test-StagingBackup.ps1"
           ],
-          "evidenceIds": ["deployment-review"],
+          "evidenceIds": ["deployment-review", "secure-local-staging"],
           "next": "Configure least-privilege managed startup, scheduled protected backups and an operator-led restored-app recovery drill.",
           "releaseGate": true
         }
@@ -581,14 +675,17 @@
         {
           "id": "production-credentials",
           "title": "Production TLS, roles and secret handling",
-          "status": "partial",
-          "detail": "Secure cookie/DPAPI support and deployment guidance exist, but production TLS, least-privilege database credentials and file permissions were not verified.",
+          "status": "needs-verification",
+          "detail": "Isolated localhost HTTPS, separate restricted runtime/migration roles, private staging configuration, DPAPI keys and a reconciled backup restore are exercised with fictional data. OS/mobile certificate trust, separate service identity and real operational credentials remain unverified.",
           "sources": [
             "src/MiniShop.Api/Program.cs",
-            "docs/DEPLOYMENT_GUIDE.md"
+            "docs/DEPLOYMENT_GUIDE.md",
+            "docs/STAGING_GUIDE.md",
+            "src/MiniShop.Api/Data/RuntimeDatabasePolicy.cs",
+            "tests/MiniShop.Tests/SecurityTests.cs"
           ],
-          "evidenceIds": ["security-review"],
-          "next": "Stage the deployment with trusted TLS, restricted app/migration roles, private keys and a new empty non-demo database.",
+          "evidenceIds": ["security-review", "secure-local-staging"],
+          "next": "Obtain approval for certificate trust and a reviewed LAN profile; separate service/provisioner OS access, verify renewal and initialize a fresh non-demo operational database with owner acceptance.",
           "releaseGate": true
         },
         {
@@ -661,21 +758,21 @@
       "id": "backend",
       "title": "Backend · xUnit + PostgreSQL",
       "status": "passed",
-      "passed": 38,
+      "passed": 96,
       "failed": 0,
       "skipped": 0,
-      "verifiedAt": "2026-10-17",
-      "command": "dotnet test MiniShop.slnx --no-restore",
+      "verifiedAt": "2026-10-18",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Test-Acceptance.ps1 -Browser",
       "evidenceId": "backend-tests"
     },
     {
       "id": "frontend",
       "title": "Frontend · Vitest + RTL",
       "status": "passed",
-      "passed": 24,
+      "passed": 32,
       "failed": 0,
       "skipped": 0,
-      "verifiedAt": "2026-10-17",
+      "verifiedAt": "2026-10-18",
       "command": "npm.cmd --prefix src/minishop-web test",
       "evidenceId": "frontend-tests"
     },
@@ -683,19 +780,30 @@
       "id": "browser",
       "title": "Browser · Playwright Chromium",
       "status": "passed",
-      "passed": 6,
+      "passed": 14,
       "failed": 0,
       "skipped": 0,
-      "verifiedAt": "2026-10-17",
-      "command": "npm.cmd --prefix src/minishop-web run test:e2e",
+      "verifiedAt": "2026-10-18",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Test-Acceptance.ps1 -Browser",
       "evidenceId": "browser-tests"
+    },
+    {
+      "id": "software-acceptance",
+      "title": "Software acceptance · fictional shop",
+      "status": "passed",
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "verifiedAt": "2026-10-18",
+      "command": "node src/minishop-web/scripts/software-acceptance.mjs; reconcile-acceptance; node src/minishop-web/scripts/software-acceptance.mjs --reports",
+      "evidenceId": "software-acceptance"
     }
   ],
   "priorities": [
     {
       "taskId": "production-credentials",
       "reason": "Protect the operational database and sessions before involving other shop devices.",
-      "acceptance": "Trusted HTTPS, least-privilege app role, protected service keys and an empty non-demo staging database pass acceptance.",
+      "acceptance": "Approved certificate trust, separated service/provisioner access, renewal and new non-demo operational credentials pass acceptance; keep the implemented fictional staging environment separate.",
       "dependsOn": []
     },
     {

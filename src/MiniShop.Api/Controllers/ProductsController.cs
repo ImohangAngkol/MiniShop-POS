@@ -13,6 +13,35 @@ namespace MiniShop.Api.Controllers;
 [ApiController, Authorize, Route("api/products")]
 public sealed class ProductsController(ShopDb db, CatalogService catalog, ShopWriter writer) : ControllerBase
 {
+    [HttpGet("scan")]
+    public async Task<object> Scan(string code, CancellationToken ct)
+    {
+        code = code.Trim();
+        if (code.Length is < 1 or > 80) throw new BusinessException("Scan a barcode or enter an exact SKU (up to 80 characters).");
+        var normalized = code.ToLowerInvariant(); var today = Rules.Today; var owner = User.IsOwner();
+        // Exact lookup is independent of catalog pagination, selected category and cached search responses.
+        var matches = await db.Products.AsNoTracking().Where(p => p.Active && (p.Sku.ToLower() == normalized || (p.Barcode != null && p.Barcode.ToLower() == normalized)))
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Sku,
+                p.Barcode,
+                p.CategoryId,
+                CategoryName = p.Category.Name,
+                p.Unit,
+                CostPrice = owner ? p.CostPrice : (decimal?)null,
+                p.SellingPrice,
+                p.LowStockThreshold,
+                p.Active,
+                Stock = p.Batches.Sum(b => b.Quantity),
+                AvailableStock = p.Batches.Where(b => b.ExpiresOn == null || b.ExpiresOn >= today).Sum(b => b.Quantity)
+            })
+            .Take(2).ToListAsync(ct);
+        if (matches.Count == 0) throw new BusinessException("Barcode or SKU not found. Check the code or ask the owner to register it.", 404);
+        if (matches.Count != 1) throw new BusinessException("This code matches multiple products. Ask the owner to resolve the barcode/SKU conflict.", 409);
+        return matches[0];
+    }
     [HttpGet]
     public async Task<object> List(string? search, int? categoryId, bool includeInactive = false, int page = 1, int pageSize = 100, CancellationToken ct = default)
     {

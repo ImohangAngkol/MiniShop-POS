@@ -8,6 +8,25 @@ namespace MiniShop.Tests;
 [Collection("PostgreSQL")]
 public sealed class ApiTests(DatabaseFixture fixture)
 {
+    [Fact]
+    public async Task Scanner_lookup_is_exact_and_preserves_cashier_price_privacy()
+    {
+        var id = await fixture.Product(); var code = "000" + Guid.NewGuid().ToString("N");
+        await using (var db = fixture.Db()) { var p = await db.Products.FindAsync(id); p!.Barcode = code; await db.SaveChangesAsync(); }
+        using var client = await Login(false);
+        var result = await client.GetFromJsonAsync<JsonElement>("/api/products/scan?code=" + code + "&categoryId=999999");
+        Assert.Equal(id, result.GetProperty("id").GetInt32()); Assert.Equal(JsonValueKind.Null, result.GetProperty("costPrice").ValueKind);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/products/scan?code=" + code[..^1])).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/products/scan?code=" + new string('X', 81))).StatusCode);
+    }
+    [Fact]
+    public async Task Scanner_rejects_ambiguous_barcode_SKU_collisions()
+    {
+        var first = await fixture.Product(); var second = await fixture.Product(); var code = "AMB-" + Guid.NewGuid().ToString("N");
+        await using (var db = fixture.Db()) { (await db.Products.FindAsync(first))!.Sku = code; (await db.Products.FindAsync(second))!.Barcode = code; await db.SaveChangesAsync(); }
+        using var client = await Login(true);
+        Assert.Equal(HttpStatusCode.Conflict, (await client.GetAsync("/api/products/scan?code=" + code)).StatusCode);
+    }
     private async Task<HttpClient> Login(bool owner)
     {
         var client = fixture.Factory.CreateClient(new() { BaseAddress = new Uri("https://localhost"), AllowAutoRedirect = false });

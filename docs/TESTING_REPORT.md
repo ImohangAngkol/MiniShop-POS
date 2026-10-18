@@ -1,5 +1,9 @@
 # Executed verification report
 
+The latest [full software acceptance report](SOFTWARE_ACCEPTANCE_REPORT.md) supersedes milestone totals below: **96 backend, 32 frontend, 14 browser and 17 acceptance scenarios passed**, with independent stock/financial/report reconciliation, controlled restart and isolated restore. Current scores are **83.8% overall, 94.2% functional and 65.0% readiness**; six release gates remain open. Historical [LAN](LAN_VERIFICATION.md)/staging evidence below remains valid within its recorded scope. Native device trust and physical acceptance remain pending in [SHOP_DEVICE_ACCEPTANCE](SHOP_DEVICE_ACCEPTANCE.md).
+
+For the current secure-staging milestone, see [STAGING_VERIFICATION](STAGING_VERIFICATION.md): **62 backend, 24 frontend and 7 HTTPS browser tests** passed, with an isolated restricted-role database, DPAPI session keys, strict certificate validation and exact backup/restore reconciliation. The older reports below retain their historical scope and counts.
+
 For the subsequent development-progress feature, see [the newer verification report](DEVELOPMENT_PROGRESS_TESTING.md): 38 backend, 24 frontend and 6 browser tests passed. The original implementation-session evidence below is preserved with its original counts and scope.
 
 Verified on **2026-10-17, Asia/Manila**. This report describes commands actually executed and bounded results, not a production-readiness certification.

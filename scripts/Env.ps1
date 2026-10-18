@@ -1,3 +1,4 @@
+param([switch]$SkipLocalConfiguration)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path $PSScriptRoot -Parent
 $env:DOTNET_CLI_HOME = Join-Path $projectRoot '.runtime\dotnet'
@@ -9,4 +10,4 @@ $env:DOTNET_NOLOGO = '1'
 $env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $projectRoot '.runtime\browsers'
 New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME, $env:NUGET_PACKAGES | Out-Null
 $localEnv = Join-Path $projectRoot '.runtime\local-env.ps1'
-if (!$env:ConnectionStrings__Shop -and (Test-Path -LiteralPath $localEnv)) { . $localEnv }
+if (!$SkipLocalConfiguration -and !$env:ConnectionStrings__Shop -and (Test-Path -LiteralPath $localEnv)) { . $localEnv }

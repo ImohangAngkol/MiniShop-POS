@@ -5,4 +5,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/MiniShop.Tests/MiniShop.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/MiniShop.Staging/MiniShop.Staging.csproj" />
+  </Folder>
 </Solution>

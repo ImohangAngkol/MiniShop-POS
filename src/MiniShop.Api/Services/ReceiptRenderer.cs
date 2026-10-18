@@ -7,7 +7,7 @@ namespace MiniShop.Api.Services;
 public interface IReceiptRenderer { byte[] Pdf(Sale sale, StoreSettings store); }
 
 // A small, dependency-free PDF 1.4 writer for a text-only sales slip.
-// Thermal HTML supports Unicode; the built-in PDF Helvetica font substitutes unsupported characters.
+// Thermal HTML supports Unicode; the built-in PDF Courier font substitutes unsupported characters.
 public sealed class ReceiptRenderer : IReceiptRenderer
 {
     public byte[] Pdf(Sale s, StoreSettings store)
@@ -21,7 +21,8 @@ public sealed class ReceiptRenderer : IReceiptRenderer
         lines.Add(store.ReceiptFooter);
         var wrapped = lines.SelectMany(x => Wrap(Ascii(x), store.ThermalWidthMm == 58 ? 30 : 42)).ToList();
         var chunks = wrapped.Chunk(65).ToList();
-        var objects = new List<string> { "<< /Type /Catalog /Pages 2 0 R >>", "", "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>" };
+        // Fixed glyph widths keep wrapped lines within both thermal paper sizes.
+        var objects = new List<string> { "<< /Type /Catalog /Pages 2 0 R >>", "", "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>" };
         var pageRefs = new List<int>();
         foreach (var chunk in chunks)
         {

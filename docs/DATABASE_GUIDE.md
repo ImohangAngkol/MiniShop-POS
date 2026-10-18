@@ -2,6 +2,8 @@
 
 PostgreSQL is the durable source of truth. EF Core provides typed queries and migrations; Npgsql is the PostgreSQL provider. The dev cluster is isolated on port 55432 with SCRAM authentication and local-only listening. Do not expose its development administrator account to the LAN.
 
+Secure staging uses a separate fictional cluster/database on 55433, a migration/schema owner and a restricted runtime login. See [exact grants and responsibilities](DATABASE_ROLES.md) and [staging/recovery commands](STAGING_GUIDE.md). Non-development web startup cannot migrate/bootstrap or use an elevated database role; test fixtures provision separately and then run commerce/API operations with restricted grants.
+
 ## Tables and relationships
 
 | Table/group | Purpose and relations |

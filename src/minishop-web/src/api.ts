@@ -52,7 +52,7 @@ export function errorMessage(error: unknown): string {
       error.response?.data?.title ||
       (error.response?.status === 401
         ? "Your session has ended. Sign in again."
-        : "Could not reach the shop server. Check the connection and retry.")
+        : "Could not reach the shop server. Check shop Wi-Fi and the server computer. An internet connection alone will not restore access. For a saved checkout or payment, retry the same saved request after reconnecting.")
     );
   }
   return error instanceof Error

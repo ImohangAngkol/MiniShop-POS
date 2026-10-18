@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,8 @@ public sealed class DatabaseFixture : IAsyncLifetime
 {
     private readonly string name = "minishop_tests_" + Guid.NewGuid().ToString("N");
     private string admin = "";
+    private readonly string runtimeRole = "minishop_test_app_" + Guid.NewGuid().ToString("N");
+    public string OwnerConnection { get; private set; } = "";
     public string Connection { get; private set; } = "";
     public string OwnerId { get; private set; } = "";
     public string Password { get; } = "Test!9a" + Guid.NewGuid().ToString("N");
@@ -27,21 +30,41 @@ public sealed class DatabaseFixture : IAsyncLifetime
         var source = Environment.GetEnvironmentVariable("TEST_DB_CONNECTION") ?? Environment.GetEnvironmentVariable("ConnectionStrings__Shop") ?? throw new InvalidOperationException("Integration tests require TEST_DB_CONNECTION or ConnectionStrings__Shop pointing at a PostgreSQL role allowed to CREATE DATABASE. See SETUP_GUIDE; unit tests can run with --filter FullyQualifiedName~RulesTests.");
         var cs = new NpgsqlConnectionStringBuilder(source) { Database = "postgres" }; admin = cs.ConnectionString;
         await using (var c = new NpgsqlConnection(admin)) { await c.OpenAsync(); await using var cmd = new NpgsqlCommand($"CREATE DATABASE \"{name}\"", c); await cmd.ExecuteNonQueryAsync(); }
-        cs.Database = name; Connection = cs.ConnectionString;
+        cs.Database = name; Connection = cs.ConnectionString; OwnerConnection = Connection;
         await using (var db = Db()) await db.Database.MigrateAsync();
-        Factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+        Factory = CreateFactory();
+        await using (var scope = Factory.Services.CreateAsyncScope())
         {
-            b.UseEnvironment("Testing");
-            b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Shop"] = Connection }));
-            b.ConfigureServices(s => { s.RemoveAll<DbContextOptions<ShopDb>>(); s.AddDbContext<ShopDb>(o => o.UseNpgsql(Connection)); });
-        });
-        await using var scope = Factory.Services.CreateAsyncScope();
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Bootstrap:Email"] = "test-owner@example.test", ["Bootstrap:Password"] = Password }).Build();
-        await Bootstrap.Initialize(scope.ServiceProvider, config);
-        var users = scope.ServiceProvider.GetRequiredService<UserManager<Employee>>(); OwnerId = (await users.FindByEmailAsync("test-owner@example.test"))!.Id;
-        var cashier = new Employee { UserName = "test-cashier@example.test", Email = "test-cashier@example.test", DisplayName = "Fictional cashier", EmailConfirmed = true };
-        Assert.True((await users.CreateAsync(cashier, Password)).Succeeded); Assert.True((await users.AddToRoleAsync(cashier, "Cashier")).Succeeded);
+            var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["Bootstrap:Email"] = "test-owner@example.test", ["Bootstrap:Password"] = Password }).Build();
+            await Bootstrap.Initialize(scope.ServiceProvider, config);
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<Employee>>(); OwnerId = (await users.FindByEmailAsync("test-owner@example.test"))!.Id;
+            var cashier = new Employee { UserName = "test-cashier@example.test", Email = "test-cashier@example.test", DisplayName = "Fictional cashier", EmailConfirmed = true };
+            Assert.True((await users.CreateAsync(cashier, Password)).Succeeded); Assert.True((await users.AddToRoleAsync(cashier, "Cashier")).Succeeded);
+        }
+        await Factory.DisposeAsync();
+        cs.Username = runtimeRole; cs.Password = Password;
+        await using (var c = new NpgsqlConnection(admin))
+        {
+            await c.OpenAsync();
+            await using var command = new NpgsqlCommand($"CREATE ROLE \"{runtimeRole}\" LOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD '{Password}'", c);
+            await command.ExecuteNonQueryAsync();
+        }
+        await RuntimeDatabasePolicy.ApplyAsync(OwnerConnection, runtimeRole);
+        Connection = cs.ConnectionString;
+        await RuntimeDatabasePolicy.VerifyAsync(Connection);
+        Factory = CreateFactory();
     }
+    public WebApplicationFactory<Program> CreateFactory() => new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
+    {
+        b.UseEnvironment("Testing");
+        b.ConfigureAppConfiguration((_, c) => c.AddInMemoryCollection(new Dictionary<string, string?> { ["ConnectionStrings:Shop"] = Connection, ["LocalStaging:Enabled"] = "false" }));
+        b.ConfigureServices(s =>
+        {
+            s.RemoveAll<DbContextOptions<ShopDb>>(); s.AddDbContext<ShopDb>(o => o.UseNpgsql(Connection));
+            // TestServer sessions must never consume development/staging DPAPI keys.
+            s.AddDataProtection().UseEphemeralDataProtectionProvider();
+        });
+    });
     public async Task<int> Product(string unit = "piece", decimal quantity = 10, decimal price = 10, DateOnly? expiry = null)
     {
         await using var db = Db(); var category = new Category { Name = "Test " + Guid.NewGuid().ToString("N") };
@@ -58,6 +81,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
         if (Factory != null) await Factory.DisposeAsync(); NpgsqlConnection.ClearAllPools();
         if (string.IsNullOrEmpty(admin)) return;
         await using var c = new NpgsqlConnection(admin); await c.OpenAsync(); await using var cmd = new NpgsqlCommand($"DROP DATABASE IF EXISTS \"{name}\" WITH (FORCE)", c); await cmd.ExecuteNonQueryAsync();
+        await using var dropRole = new NpgsqlCommand($"DROP ROLE IF EXISTS \"{runtimeRole}\"", c); await dropRole.ExecuteNonQueryAsync();
     }
 }
 [CollectionDefinition("PostgreSQL")]

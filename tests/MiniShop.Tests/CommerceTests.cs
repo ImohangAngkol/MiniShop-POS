@@ -9,6 +9,24 @@ namespace MiniShop.Tests;
 [Collection("PostgreSQL")]
 public sealed class CommerceTests(DatabaseFixture fixture)
 {
+    [Theory]
+    [InlineData(0.05, 0.05)]
+    [InlineData(0.05, 0.15)]
+    [InlineData(0, 0)]
+    public async Task Discounted_product_report_allocations_reconcile_exactly_to_sale_totals(decimal price, decimal discount)
+    {
+        var ids = new[] { await fixture.Product(price: price), await fixture.Product(price: price), await fixture.Product(price: price) };
+        var sale = await Checkout(new CheckoutRequest(Guid.NewGuid(), ids.Select(id => new CartLine(id, 1)).ToList(), discount, 1, null, false));
+        await using var db = fixture.Db();
+        var report = System.Text.Json.JsonSerializer.SerializeToElement(await new ReportService(db).Sales(Rules.Today, Rules.Today, default));
+        var rows = report.GetProperty("products").EnumerateArray().Where(row => ids.Contains(row.GetProperty("id").GetInt32())).ToList();
+        Assert.Equal(sale.Total, rows.Sum(row => row.GetProperty("revenue").GetDecimal()));
+        Assert.Equal(sale.Total - sale.CostTotal, rows.Sum(row => row.GetProperty("grossProfit").GetDecimal()));
+        await new CommerceService(db, new ShopWriter(db)).Refund(sale.Id, "Discount allocation reversal", fixture.OwnerId, default);
+        var reversed = System.Text.Json.JsonSerializer.SerializeToElement(await new ReportService(db).Sales(Rules.Today, Rules.Today, default));
+        var reversedRows = reversed.GetProperty("products").EnumerateArray().Where(row => ids.Contains(row.GetProperty("id").GetInt32())).ToList();
+        Assert.All(reversedRows, row => { Assert.Equal(0, row.GetProperty("revenue").GetDecimal()); Assert.Equal(0, row.GetProperty("grossProfit").GetDecimal()); });
+    }
     private async Task<Sale> Checkout(CheckoutRequest r) { await using var db = fixture.Db(); return await new CommerceService(db, new ShopWriter(db)).Checkout(r, fixture.OwnerId, "Fictional owner", true, default); }
     private static CheckoutRequest Request(int id, decimal quantity = 1, decimal cash = 100, int? customer = null, bool credit = false, Guid? key = null) => new(key ?? Guid.NewGuid(), [new CartLine(id, quantity)], 0, cash, customer, credit);
 

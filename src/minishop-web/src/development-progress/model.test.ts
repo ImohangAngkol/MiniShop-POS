@@ -70,9 +70,9 @@ describe("evidence-based progress calculation", () => {
   });
   it("validates the actual audit and its transparent arithmetic", () => {
     const result = calculateProgress(progressSchema.parse(audit));
-    expect(result.overall).toBeCloseTo(81.5);
-    expect(result.functional).toBeCloseTo((60.5 / 65) * 100);
-    expect(result.readiness).toBe(60);
+    expect(result.overall).toBeCloseTo(83.75);
+    expect(result.functional).toBeCloseTo((61.25 / 65) * 100);
+    expect(result.readiness).toBeCloseTo((19.5 / 30) * 100);
     expect(result.milestones.reduce((sum, m) => sum + m.weight, 0)).toBe(100);
   });
   it("rejects weights that do not sum to 100", () => {

@@ -194,11 +194,13 @@ export function SalesPage() {
 }
 export function ReceiptPage() {
   const { id } = useParams();
+  const [previewWidth, setPreviewWidth] = useState<58 | 80 | null>(null);
   const q = useData<Sale>(`/sales/${id}`),
     store = useData<StoreSettings>("/settings");
   const s = q.data,
     t = store.data;
   if (!s || !t) return <QueryState query={!s ? q : store} />;
+  const width = previewWidth ?? t.thermalWidthMm;
   return (
     <>
       <div className="no-print">
@@ -211,7 +213,20 @@ export function ReceiptPage() {
             <ArrowLeft size={16} />
             Next sale
           </Link>
-          <a className="btn" href={`/api/sales/${id}/pdf`}>
+          <label className="field">
+            Receipt preview width
+            <select
+              aria-label="Receipt preview width"
+              value={width}
+              onChange={(e) =>
+                setPreviewWidth(Number(e.target.value) as 58 | 80)
+              }
+            >
+              <option value={58}>58 mm</option>
+              <option value={80}>80 mm</option>
+            </select>
+          </label>
+          <a className="btn" href={`/api/sales/${id}/pdf?paperWidth=${width}`}>
             <Download size={16} />
             Download PDF
           </a>
@@ -223,7 +238,7 @@ export function ReceiptPage() {
       </div>
       <div className="receipt-stage">
         <article
-          className={`thermal-receipt width-${t.thermalWidthMm}`}
+          className={`thermal-receipt width-${width}`}
           aria-label="Sales receipt"
         >
           <header>
@@ -292,9 +307,9 @@ export function ReceiptPage() {
         </article>
       </div>
       <p className="page-note no-print">
-        Select {t.thermalWidthMm} mm paper, 100% scale, and no browser headers
-        or footers. Preview before printing. Credit shown is the amount at sale;
-        check the customer ledger for the current balance.
+        Select {width} mm paper, 100% scale, and no browser headers or footers.
+        Preview before printing. Credit shown is the amount at sale; check the
+        customer ledger for the current balance.
       </p>
     </>
   );

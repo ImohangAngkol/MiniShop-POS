@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -52,6 +52,18 @@ export function PosPage() {
     [busy, setBusy] = useState(false);
   const guard = useRef(false),
     searchRef = useRef<HTMLInputElement>(null);
+  const cartRef = useRef(cart);
+  cartRef.current = cart;
+  const scanQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingScans = useRef(0);
+  const [scanCount, setScanCount] = useState(0);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
   const products = useData<{ items: Product[]; total: number }>(
       `/products?search=${encodeURIComponent(search)}&pageSize=100${category ? "&categoryId=" + category : ""}`,
     ),
@@ -59,22 +71,54 @@ export function PosPage() {
     customers = useData<Customer[]>("/customers");
   const totals = cartTotals(cart, discount, cash),
     locked = !!intent || busy;
-  function add(p: Product) {
+  function add(p: Product, clearSearch = true) {
     if (locked) return;
     const step = p.unit === "gram" ? 100 : 1;
-    setCart((current) => {
-      const exists = current.find((x) => x.id === p.id);
-      const quantity = (exists?.quantity ?? 0) + step;
-      if (quantity > p.availableStock) {
-        flash("There is not enough available stock.", "error");
-        return current;
-      }
-      return exists
-        ? current.map((x) => (x.id === p.id ? { ...x, quantity } : x))
-        : [...current, { ...p, quantity }];
-    });
+    const current = cartRef.current;
+    const exists = current.find((x) => x.id === p.id);
+    const quantity = (exists?.quantity ?? 0) + step;
+    if (quantity > p.availableStock) {
+      flash("There is not enough available stock.", "error");
+      return;
+    }
+    const next = exists
+      ? current.map((x) => (x.id === p.id ? { ...x, quantity } : x))
+      : [...current, { ...p, quantity }];
+    cartRef.current = next;
+    setCart(next);
+    if (clearSearch) {
+      setSearch("");
+      searchRef.current?.focus();
+    }
+  }
+  function scan() {
+    if (locked) return;
+    const code = (searchRef.current?.value ?? search).trim();
+    if (!code) {
+      flash("Scan a barcode or enter an exact SKU first.", "error");
+      return;
+    }
     setSearch("");
-    searchRef.current?.focus();
+    pendingScans.current += 1;
+    setScanCount(pendingScans.current);
+    // Queue every Enter, including repeats. A slow lookup must never drop a scan,
+    // consume a stale catalog result, or erase the next code being typed.
+    scanQueue.current = scanQueue.current.then(async () => {
+      if (!alive.current) return;
+      try {
+        const p = (
+          await api.get<Product>(
+            `/products/scan?code=${encodeURIComponent(code)}`,
+          )
+        ).data;
+        if (alive.current) add(p, false);
+      } catch (error) {
+        if (alive.current) flash(errorMessage(error), "error");
+      } finally {
+        pendingScans.current -= 1;
+        if (alive.current) setScanCount(pendingScans.current);
+      }
+    });
   }
   function change(id: number, value: number) {
     if (locked) return;
@@ -83,7 +127,7 @@ export function PosPage() {
     );
   }
   async function checkout() {
-    if (guard.current) return;
+    if (guard.current || pendingScans.current > 0) return;
     if (
       !intent &&
       (cart.length === 0 ||
@@ -164,15 +208,7 @@ export function PosPage() {
             className="search-field barcode-search"
             onSubmit={(e) => {
               e.preventDefault();
-              const exact = products.data?.items.find(
-                (p) =>
-                  p.barcode === search ||
-                  p.sku.toLowerCase() === search.toLowerCase(),
-              );
-              if (exact) add(exact);
-              else if (products.data?.items.length === 1)
-                add(products.data.items[0]);
-              else flash("Choose a matching product below.", "error");
+              scan();
             }}
           >
             <Barcode size={23} />
@@ -183,6 +219,9 @@ export function PosPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               autoFocus
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="search"
               disabled={locked}
             />
             <kbd>↵</kbd>
@@ -194,6 +233,19 @@ export function PosPage() {
               <Search size={18} />
             </button>
           </form>
+          <p className="page-note" role="status" aria-live="polite">
+            {scanCount
+              ? `Looking up ${scanCount} scan${scanCount === 1 ? "" : "s"}…`
+              : "Scanner ready. Scan or type an exact barcode/SKU, then Enter. Tap a product for name searches."}
+          </p>
+          <button
+            className="btn small"
+            type="button"
+            disabled={locked}
+            onClick={() => searchRef.current?.focus()}
+          >
+            Focus barcode scanner
+          </button>
           <div className="category-chips">
             <button
               className={!category ? "selected" : ""}
@@ -425,7 +477,7 @@ export function PosPage() {
             </div>
             <button
               className="btn primary checkout-btn"
-              disabled={busy || !cart.length}
+              disabled={busy || scanCount > 0 || !cart.length}
               onClick={checkout}
             >
               <Check size={18} />

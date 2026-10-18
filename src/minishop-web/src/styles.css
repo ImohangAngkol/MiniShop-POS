@@ -1480,11 +1480,15 @@ tr:last-child td {
   gap: 24px;
   align-items: start;
 }
+.pos-grid > * {
+  min-width: 0;
+}
 .barcode-search {
   width: 100%;
   background: white;
 }
 .barcode-search input {
+  min-width: 0;
   min-height: 52px;
   font-size: 12px;
 }
@@ -1572,6 +1576,8 @@ tr:last-child td {
 }
 .product-card-copy {
   padding: 11px 4px 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .product-card-copy > span {
   font-size: 8px;
@@ -1658,6 +1664,8 @@ tr:last-child td {
   gap: 8px;
 }
 .cart-item-title > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 11px;
   font-weight: 600;
   color: #9270a8;
@@ -1870,6 +1878,18 @@ tr:last-child td {
   font-size: 9px;
   line-height: 1.6;
   margin-top: 4px;
+}
+.receipt-items p > span:first-child,
+.receipt-totals p > :first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.receipt-items p > span:last-child,
+.receipt-totals p > :last-child {
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .receipt-totals {
   padding: 9px 0;
@@ -2616,6 +2636,7 @@ tr:last-child td {
   }
   .app-shell,
   .main-shell,
+  .workspace,
   .page {
     display: block !important;
     margin: 0 !important;
